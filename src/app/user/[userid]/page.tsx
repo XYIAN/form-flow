@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState, useRef } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { DataTable } from 'primereact/datatable'
 import { Column } from 'primereact/column'
 import { Button } from 'primereact/button'
 import { Card } from 'primereact/card'
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog'
+import { Message } from 'primereact/message'
 import { useAuth } from '@/context/AuthContext'
 import { useForms } from '@/context/FormContext'
 import { Form } from '@/types'
@@ -21,10 +22,27 @@ interface UserDashboardProps {
 
 export default function UserDashboard({ params }: UserDashboardProps) {
 	const { user, isAuthenticated } = useAuth()
-	const { getFormsByUserId, deleteForm } = useForms()
+	const { getFormsByUserId, deleteForm, forms: allForms } = useForms()
 	const router = useRouter()
+	const searchParams = useSearchParams()
 	const [forms, setForms] = useState<Form[]>([])
 	const [resolvedParams, setResolvedParams] = useState<{ userid: string } | null>(null)
+	const hasRedirected = useRef(false)
+	const [showSuccessMessage, setShowSuccessMessage] = useState(false)
+
+	// Check for success message from form creation
+	useEffect(() => {
+		if (searchParams.get('created') === 'true') {
+			setShowSuccessMessage(true)
+			// Remove the success parameter from URL
+			const newUrl = new URL(window.location.href)
+			newUrl.searchParams.delete('created')
+			window.history.replaceState({}, '', newUrl.toString())
+			
+			// Hide success message after 5 seconds
+			setTimeout(() => setShowSuccessMessage(false), 5000)
+		}
+	}, [searchParams])
 
 	// Resolve params promise
 	useEffect(() => {
@@ -35,25 +53,51 @@ export default function UserDashboard({ params }: UserDashboardProps) {
 
 	// Redirect if not authenticated or wrong user
 	useEffect(() => {
+		if (hasRedirected.current) return
+		
 		if (!isAuthenticated || !user || !resolvedParams) {
 			if (!isAuthenticated || !user) {
+				hasRedirected.current = true
 				router.push('/')
 			}
 			return
 		}
 
 		if (user.email !== resolvedParams.userid) {
+			hasRedirected.current = true
 			router.push(`/user/${user.email}`)
 			return
 		}
+	}, [isAuthenticated, user, resolvedParams])
 
-		const userForms = getFormsByUserId(user.id)
-		setForms(userForms)
-	}, [isAuthenticated, user, resolvedParams, router, getFormsByUserId])
+	// Update forms when user changes or when allForms changes
+	useEffect(() => {
+		if (user && resolvedParams) {
+			const userForms = getFormsByUserId(user.id)
+			setForms(userForms)
+		}
+	}, [user, resolvedParams, allForms, getFormsByUserId])
 
 	const handleEditForm = (formId: string) => {
 		if (!resolvedParams) return
 		router.push(`/user/${resolvedParams.userid}/${formId}`)
+	}
+
+	const handleViewForm = (formId: string) => {
+		if (!resolvedParams) return
+		router.push(`/form/${formId}`)
+	}
+
+	const handleShareForm = async (formId: string) => {
+		const formUrl = `${window.location.origin}/form/${formId}`
+		try {
+			await navigator.clipboard.writeText(formUrl)
+			// You could add a toast notification here
+			alert('Form URL copied to clipboard!')
+		} catch (err) {
+			console.error('Failed to copy URL:', err)
+			alert('Failed to copy URL. Please copy manually: ' + formUrl)
+		}
 	}
 
 	const handleDeleteForm = (formId: string) => {
@@ -63,7 +107,7 @@ export default function UserDashboard({ params }: UserDashboardProps) {
 			icon: 'pi pi-exclamation-triangle',
 			accept: () => {
 				deleteForm(formId)
-				setForms(prev => prev.filter(form => form.id !== formId))
+				// Forms will be updated automatically via the useEffect above
 			}
 		})
 	}
@@ -75,6 +119,18 @@ export default function UserDashboard({ params }: UserDashboardProps) {
 
 	const actionTemplate = (rowData: Form) => (
 		<div className="flex gap-2">
+			<Button
+				icon="pi pi-eye"
+				className="p-button-sm p-button-outlined p-button-info"
+				onClick={() => handleViewForm(rowData.id)}
+				tooltip="View Form"
+			/>
+			<Button
+				icon="pi pi-share-alt"
+				className="p-button-sm p-button-outlined p-button-success"
+				onClick={() => handleShareForm(rowData.id)}
+				tooltip="Share Form URL"
+			/>
 			<Button
 				icon="pi pi-pencil"
 				className="p-button-sm p-button-outlined p-button-secondary"
@@ -127,6 +183,14 @@ export default function UserDashboard({ params }: UserDashboardProps) {
 						/>
 					</div>
 
+					{showSuccessMessage && (
+						<Message 
+							severity="success" 
+							text="Form created successfully!" 
+							className="mb-4" 
+						/>
+					)}
+
 					<Card className="form-flow-card">
 						{forms.length === 0 ? (
 							<div className="text-center py-8">
@@ -171,7 +235,7 @@ export default function UserDashboard({ params }: UserDashboardProps) {
 								/>
 								<Column
 									body={actionTemplate}
-									style={{ width: '120px' }}
+									style={{ width: '240px' }}
 								/>
 							</DataTable>
 						)}

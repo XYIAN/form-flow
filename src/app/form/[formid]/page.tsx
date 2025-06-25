@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm, Controller } from 'react-hook-form'
 import { Card } from 'primereact/card'
@@ -13,20 +13,16 @@ import { RadioButton } from 'primereact/radiobutton'
 import { Button } from 'primereact/button'
 import { Dialog } from 'primereact/dialog'
 import { Message } from 'primereact/message'
-import { useAuth } from '@/context/AuthContext'
 import { useForms } from '@/context/FormContext'
 import { Form, FormField } from '@/types'
-import Navigation from '@/components/Navigation'
 
-interface FormPageProps {
+interface FormViewPageProps {
 	params: Promise<{
-		userid: string
 		formid: string
 	}>
 }
 
-export default function FormPage({ params }: FormPageProps) {
-	const { user, isAuthenticated } = useAuth()
+export default function FormViewPage({ params }: FormViewPageProps) {
 	const { getFormById } = useForms()
 	const router = useRouter()
 	const [form, setForm] = useState<Form | null>(null)
@@ -34,8 +30,7 @@ export default function FormPage({ params }: FormPageProps) {
 	const [showSubmissionModal, setShowSubmissionModal] = useState(false)
 	const [submittedData, setSubmittedData] = useState<Record<string, string | number | boolean | string[] | Date>>({})
 	const [error, setError] = useState('')
-	const [resolvedParams, setResolvedParams] = useState<{ userid: string; formid: string } | null>(null)
-	const hasRedirected = useRef(false)
+	const [resolvedParams, setResolvedParams] = useState<{ formid: string } | null>(null)
 
 	const {
 		control,
@@ -51,23 +46,9 @@ export default function FormPage({ params }: FormPageProps) {
 		})
 	}, [params])
 
-	// Redirect if not authenticated or wrong user
+	// Load form data
 	useEffect(() => {
-		if (hasRedirected.current) return
-		
-		if (!isAuthenticated || !user || !resolvedParams) {
-			if (!isAuthenticated || !user) {
-				hasRedirected.current = true
-				router.push('/')
-			}
-			return
-		}
-
-		if (user.email !== resolvedParams.userid) {
-			hasRedirected.current = true
-			router.push(`/user/${user.email}`)
-			return
-		}
+		if (!resolvedParams) return
 
 		const foundForm = getFormById(resolvedParams.formid)
 		if (!foundForm) {
@@ -76,15 +57,9 @@ export default function FormPage({ params }: FormPageProps) {
 			return
 		}
 
-		if (foundForm.userId !== user.id) {
-			setError('You do not have permission to access this form')
-			setIsLoading(false)
-			return
-		}
-
 		setForm(foundForm)
 		setIsLoading(false)
-	}, [isAuthenticated, user, resolvedParams])
+	}, [resolvedParams, getFormById])
 
 	const onSubmit = (data: Record<string, string | number | boolean | string[] | Date>) => {
 		setSubmittedData(data)
@@ -271,14 +246,9 @@ export default function FormPage({ params }: FormPageProps) {
 		)
 	}
 
-	if (!isAuthenticated || !user) {
-		return null
-	}
-
 	if (isLoading || !resolvedParams) {
 		return (
 			<div className="form-flow-container">
-				<Navigation userEmail={user.email} companyName={user.companyName} />
 				<div className="flex align-items-center justify-content-center min-h-screen">
 					<div className="text-center">
 						<i className="pi pi-spinner pi-spin text-4xl text-white mb-4"></i>
@@ -292,14 +262,13 @@ export default function FormPage({ params }: FormPageProps) {
 	if (error || !form) {
 		return (
 			<div className="form-flow-container">
-				<Navigation userEmail={user.email} companyName={user.companyName} />
 				<div className="flex align-items-center justify-content-center min-h-screen">
 					<div className="text-center">
 						<Message severity="error" text={error || 'Form not found'} className="mb-4" />
 						<Button
-							label="Back to Dashboard"
-							icon="pi pi-arrow-left"
-							onClick={() => router.push(`/user/${resolvedParams.userid}`)}
+							label="Go Home"
+							icon="pi pi-home"
+							onClick={() => router.push('/')}
 						/>
 					</div>
 				</div>
@@ -309,27 +278,16 @@ export default function FormPage({ params }: FormPageProps) {
 
 	return (
 		<div className="form-flow-container">
-			<Navigation userEmail={user.email} companyName={user.companyName} />
-			
 			<div className="p-4">
 				<div className="max-w-2xl mx-auto">
-					<div className="flex justify-content-between align-items-center mb-4">
-						<h2 className="text-2xl font-bold text-white">{form.title}</h2>
-						<Button
-							label="Back to Dashboard"
-							icon="pi pi-arrow-left"
-							className="p-button-outlined p-button-secondary"
-							onClick={() => router.push(`/user/${resolvedParams.userid}`)}
-						/>
+					<div className="text-center mb-6">
+						<h1 className="text-3xl font-bold text-white mb-2">{form.title}</h1>
+						{form.description && (
+							<p className="text-gray-300 text-lg">{form.description}</p>
+						)}
 					</div>
 
 					<Card className="form-flow-card">
-						{form.description && (
-							<div className="mb-4 p-3 bg-gray-800 rounded">
-								<p className="text-gray-300">{form.description}</p>
-							</div>
-						)}
-
 						<form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
 							{form.fields.map((field) => (
 								<div key={field.id} className="field">
@@ -346,12 +304,12 @@ export default function FormPage({ params }: FormPageProps) {
 								</div>
 							))}
 
-							<div className="flex justify-content-end pt-4">
+							<div className="flex justify-content-center pt-6">
 								<Button
 									type="submit"
 									label="Submit Form"
 									icon="pi pi-send"
-									className="p-button-primary"
+									className="p-button-primary p-button-lg"
 								/>
 							</div>
 						</form>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card } from 'primereact/card'
 import { InputText } from 'primereact/inputtext'
@@ -28,6 +28,7 @@ export default function CreateForm({ params }: CreateFormProps) {
 	const router = useRouter()
 	const [activeTab, setActiveTab] = useState<'manual' | 'csv'>('manual')
 	const [resolvedParams, setResolvedParams] = useState<{ userid: string } | null>(null)
+	const hasRedirected = useRef(false)
 	
 	// Form data
 	const [title, setTitle] = useState('')
@@ -60,18 +61,22 @@ export default function CreateForm({ params }: CreateFormProps) {
 
 	// Redirect if not authenticated or wrong user
 	useEffect(() => {
+		if (hasRedirected.current) return
+		
 		if (!isAuthenticated || !user || !resolvedParams) {
 			if (!isAuthenticated || !user) {
+				hasRedirected.current = true
 				router.push('/')
 			}
 			return
 		}
 
 		if (user.email !== resolvedParams.userid) {
+			hasRedirected.current = true
 			router.push(`/user/${user.email}/create`)
 			return
 		}
-	}, [isAuthenticated, user, resolvedParams, router])
+	}, [isAuthenticated, user, resolvedParams])
 
 	const handleAddField = () => {
 		if (!fieldLabel.trim()) {
@@ -191,13 +196,14 @@ export default function CreateForm({ params }: CreateFormProps) {
 
 		setIsLoading(true)
 		try {
-			const newForm = createForm({
+			createForm({
 				title: formTitle.trim(),
 				description: formDescription.trim() || undefined,
 				fields: formFields
 			}, user!.id)
 
-			router.push(`/user/${resolvedParams.userid}/${newForm.id}`)
+			// Redirect back to dashboard to show the new form in the list
+			router.push(`/user/${resolvedParams.userid}?created=true`)
 		} catch {
 			setError('Failed to create form. Please try again.')
 		} finally {
@@ -218,8 +224,8 @@ export default function CreateForm({ params }: CreateFormProps) {
 			<Navigation userEmail={user.email} companyName={user.companyName} />
 			
 			<div className="p-4">
-				<div className="max-w-4xl mx-auto">
-					<div className="flex justify-content-between align-items-center mb-4">
+				<div className="w-full flex flex-col lg:w-2/3 mx-auto">
+					<div className="flex justify-between items-center mb-4">
 						<h2 className="text-2xl font-bold text-white">Create New Form</h2>
 						<Button
 							label="Back to Dashboard"
@@ -249,176 +255,170 @@ export default function CreateForm({ params }: CreateFormProps) {
 					)}
 
 					{activeTab === 'manual' ? (
-						<div className="grid">
-							<div className="col-12 lg:col-8">
-								<Card className="form-flow-card mb-4">
-									<h3 className="text-xl font-semibold text-white mb-4">Form Details</h3>
-									
-									<div className="field mb-3">
-										<label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
-											Form Title *
-										</label>
-										<InputText
-											id="title"
-											value={title}
-											onChange={(e) => setTitle(e.target.value)}
-											placeholder="Enter form title"
-											className="w-full"
-										/>
-									</div>
-
-									<div className="field mb-3">
-										<label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-2">
-											Description
-										</label>
-										<InputTextarea
-											id="description"
-											value={description}
-											onChange={(e) => setDescription(e.target.value)}
-											placeholder="Enter form description (optional)"
-											rows={3}
-											className="w-full"
-										/>
-									</div>
-								</Card>
-
-								<Card className="form-flow-card">
-									<h3 className="text-xl font-semibold text-white mb-4">Form Fields</h3>
-									
-									{fields.length > 0 && (
-										<div className="mb-4">
-											{fields.map((field, index) => (
-												<div key={field.id} className="flex justify-content-between align-items-center p-3 bg-gray-800 rounded mb-2">
-													<div>
-														<span className="font-medium text-white">{index + 1}. {field.label}</span>
-														<span className="ml-2 text-sm text-gray-400">({field.type})</span>
-														{field.required && <span className="ml-2 text-red-400">*</span>}
-													</div>
-													<div className="flex gap-2">
-														<Button
-															icon="pi pi-pencil"
-															className="p-button-sm p-button-outlined"
-															onClick={() => handleEditField(field)}
-														/>
-														<Button
-															icon="pi pi-trash"
-															className="p-button-sm p-button-outlined p-button-danger"
-															onClick={() => handleDeleteField(field.id)}
-														/>
-													</div>
-												</div>
-											))}
-										</div>
-									)}
-
-									<div className="border-top-1 border-gray-700 pt-4">
-										<h4 className="text-lg font-medium text-white mb-3">
-											{editingField ? 'Edit Field' : 'Add New Field'}
-										</h4>
-										
-										<div className="grid">
-											<div className="col-12 md:col-6">
-												<label className="block text-sm font-medium text-gray-300 mb-2">
-													Field Label *
-												</label>
-												<InputText
-													value={fieldLabel}
-													onChange={(e) => setFieldLabel(e.target.value)}
-													placeholder="Enter field label"
-													className="w-full"
-												/>
-											</div>
-											<div className="col-12 md:col-6">
-												<label className="block text-sm font-medium text-gray-300 mb-2">
-													Field Type
-												</label>
-												<Dropdown
-													value={fieldType}
-													options={FIELD_TYPES}
-													onChange={(e) => setFieldType(e.value)}
-													optionLabel="label"
-													optionValue="value"
-													placeholder="Select field type"
-													className="w-full"
-												/>
-											</div>
-											<div className="col-12 md:col-6">
-												<label className="block text-sm font-medium text-gray-300 mb-2">
-													Placeholder
-												</label>
-												<InputText
-													value={fieldPlaceholder}
-													onChange={(e) => setFieldPlaceholder(e.target.value)}
-													placeholder="Enter placeholder text"
-													className="w-full"
-												/>
-											</div>
-											<div className="col-12 md:col-6">
-												<label className="block text-sm font-medium text-gray-300 mb-2">
-													Required
-												</label>
-												<div className="flex align-items-center">
-													<input
-														type="checkbox"
-														checked={fieldRequired}
-														onChange={(e) => setFieldRequired(e.target.checked)}
-														className="mr-2"
-													/>
-													<span className="text-gray-300">Make this field required</span>
-												</div>
-											</div>
-											{(fieldType === 'select' || fieldType === 'radio' || fieldType === 'checkbox') && (
-												<div className="col-12">
-													<label className="block text-sm font-medium text-gray-300 mb-2">
-														Options (comma-separated)
-													</label>
-													<InputText
-														value={fieldOptions}
-														onChange={(e) => setFieldOptions(e.target.value)}
-														placeholder="Option 1, Option 2, Option 3"
-														className="w-full"
-													/>
-												</div>
-											)}
-										</div>
-
-										<div className="flex gap-2 mt-4">
-											{editingField ? (
-												<>
-													<Button
-														label="Update Field"
-														icon="pi pi-check"
-														onClick={handleUpdateField}
-														className="p-button-primary"
-													/>
-													<Button
-														label="Cancel"
-														icon="pi pi-times"
-														className="p-button-outlined"
-														onClick={resetFieldForm}
-													/>
-												</>
-											) : (
-												<Button
-													label="Add Field"
-													icon="pi pi-plus"
-													onClick={handleAddField}
-													className="p-button-primary"
-												/>
-											)}
-										</div>
-									</div>
-								</Card>
-
-								<div className="flex justify-content-end mt-4">
-									<Button
-										label="Create Form"
-										icon="pi pi-save"
-										onClick={handleSaveManualForm}
-										className="p-button-primary"
-										disabled={isLoading}
+						<div className="flex flex-col w-full">
+							<Card className="form-flow-card mb-4">
+								<h3 className="text-xl font-semibold text-white mb-4">Form Details</h3>
+								<div className="field mb-3">
+									<label htmlFor="title" className="block text-sm font-medium text-gray-300 mb-2">
+										Form Title *
+									</label>
+									<InputText
+										id="title"
+										value={title}
+										onChange={(e) => setTitle(e.target.value)}
+										placeholder="Enter form title"
+										className="w-full"
 									/>
 								</div>
+								<div className="field mb-3">
+									<label htmlFor="description" className="block text-sm font-medium text-gray-300 mb-2">
+										Description
+									</label>
+									<InputTextarea
+										id="description"
+										value={description}
+										onChange={(e) => setDescription(e.target.value)}
+										placeholder="Enter form description (optional)"
+										rows={3}
+										className="w-full"
+									/>
+								</div>
+							</Card>
+
+							<Card className="form-flow-card">
+								<h3 className="text-xl font-semibold text-white mb-4">Form Fields</h3>
+								{fields.length > 0 && (
+									<div className="mb-4">
+										{fields.map((field, index) => (
+											<div key={field.id} className="flex justify-between items-center p-3 bg-gray-800 rounded mb-2">
+												<div>
+													<span className="font-medium text-white">{index + 1}. {field.label}</span>
+													<span className="ml-2 text-sm text-gray-400">({field.type})</span>
+													{field.required && <span className="ml-2 text-red-400">*</span>}
+												</div>
+												<div className="flex gap-2">
+													<Button
+														icon="pi pi-pencil"
+														className="p-button-sm p-button-outlined"
+														onClick={() => handleEditField(field)}
+													/>
+													<Button
+														icon="pi pi-trash"
+														className="p-button-sm p-button-outlined p-button-danger"
+														onClick={() => handleDeleteField(field.id)}
+													/>
+												</div>
+											</div>
+										))}
+									</div>
+								)}
+
+								<div className="border-t border-gray-700 pt-4">
+									<h4 className="text-lg font-medium text-white mb-3">
+										{editingField ? 'Edit Field' : 'Add New Field'}
+									</h4>
+									<div className="flex flex-wrap gap-4">
+										<div className="w-full md:w-1/2">
+											<label className="block text-sm font-medium text-gray-300 mb-2">
+												Field Label *
+											</label>
+											<InputText
+												value={fieldLabel}
+												onChange={(e) => setFieldLabel(e.target.value)}
+												placeholder="Enter field label"
+												className="w-full"
+											/>
+										</div>
+										<div className="w-full md:w-1/2">
+											<label className="block text-sm font-medium text-gray-300 mb-2">
+												Field Type
+											</label>
+											<Dropdown
+												value={fieldType}
+												options={FIELD_TYPES}
+												onChange={(e) => setFieldType(e.value)}
+												optionLabel="label"
+												optionValue="value"
+												placeholder="Select field type"
+												className="w-full"
+											/>
+										</div>
+										<div className="w-full md:w-1/2">
+											<label className="block text-sm font-medium text-gray-300 mb-2">
+												Placeholder
+											</label>
+											<InputText
+												value={fieldPlaceholder}
+												onChange={(e) => setFieldPlaceholder(e.target.value)}
+												placeholder="Enter placeholder text"
+												className="w-full"
+											/>
+										</div>
+										<div className="w-full md:w-1/2">
+											<label className="block text-sm font-medium text-gray-300 mb-2">
+												Required
+											</label>
+											<div className="flex items-center">
+												<input
+													type="checkbox"
+													checked={fieldRequired}
+													onChange={(e) => setFieldRequired(e.target.checked)}
+													className="mr-2"
+												/>
+												<span className="text-gray-300">Make this field required</span>
+											</div>
+										</div>
+										{(fieldType === 'select' || fieldType === 'radio' || fieldType === 'checkbox') && (
+											<div className="w-full">
+												<label className="block text-sm font-medium text-gray-300 mb-2">
+													Options (comma-separated)
+												</label>
+												<InputText
+													value={fieldOptions}
+													onChange={(e) => setFieldOptions(e.target.value)}
+													placeholder="Option 1, Option 2, Option 3"
+													className="w-full"
+												/>
+											</div>
+										)}
+									</div>
+
+									<div className="flex gap-2 mt-4">
+										{editingField ? (
+											<>
+												<Button
+													label="Update Field"
+													icon="pi pi-check"
+													onClick={handleUpdateField}
+													className="p-button-primary"
+												/>
+												<Button
+													label="Cancel"
+													icon="pi pi-times"
+													className="p-button-outlined"
+													onClick={resetFieldForm}
+												/>
+											</>
+										) : (
+											<Button
+												label="Add Field"
+												icon="pi pi-plus"
+												onClick={handleAddField}
+												className="p-button-primary"
+											/>
+										)}
+									</div>
+								</div>
+							</Card>
+
+							<div className="flex justify-end mt-4">
+								<Button
+									label="Create Form"
+									icon="pi pi-save"
+									onClick={handleSaveManualForm}
+									className="p-button-primary"
+									disabled={isLoading}
+								/>
 							</div>
 						</div>
 					) : (
