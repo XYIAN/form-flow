@@ -84,13 +84,38 @@ export default function CreateForm({ params }: CreateFormProps) {
 			return
 		}
 
+		// Set default options for certain field types
+		let defaultOptions: string[] | undefined
+		let defaultPlaceholder = fieldPlaceholder.trim() || undefined
+
+		switch (fieldType) {
+			case 'yesno':
+				defaultOptions = ['Yes', 'No']
+				break
+			case 'money':
+				defaultPlaceholder = defaultPlaceholder || 'Enter amount (e.g., 1,234.56)'
+				break
+			case 'phone':
+				defaultPlaceholder = defaultPlaceholder || '(555) 123-4567'
+				break
+			case 'address':
+				defaultPlaceholder = defaultPlaceholder || 'Enter full address'
+				break
+			case 'file':
+				defaultPlaceholder = defaultPlaceholder || 'Upload file (PDF, DOC, JPG, etc.)'
+				break
+			case 'signature':
+				defaultPlaceholder = defaultPlaceholder || 'Type your full name to sign'
+				break
+		}
+
 		const newField: FormField = {
 			id: generateId(),
 			label: fieldLabel.trim(),
 			type: fieldType,
 			required: fieldRequired,
-			placeholder: fieldPlaceholder.trim() || undefined,
-			options: fieldOptions.trim() ? fieldOptions.split(',').map(opt => opt.trim()) : undefined
+			placeholder: defaultPlaceholder,
+			options: fieldOptions.trim() ? fieldOptions.split(',').map(opt => opt.trim()) : defaultOptions
 		}
 
 		setFields(prev => [...prev, newField])
@@ -368,16 +393,17 @@ export default function CreateForm({ params }: CreateFormProps) {
 												<span className="text-gray-300">Make this field required</span>
 											</div>
 										</div>
-										{(fieldType === 'select' || fieldType === 'radio' || fieldType === 'checkbox') && (
+										{(fieldType === 'select' || fieldType === 'radio' || fieldType === 'checkbox' || fieldType === 'yesno') && (
 											<div className="w-full">
 												<label className="block text-sm font-medium text-gray-300 mb-2">
-													Options (comma-separated)
+													{fieldType === 'yesno' ? 'Yes/No options (auto-filled)' : 'Options (comma-separated)'}
 												</label>
 												<InputText
 													value={fieldOptions}
 													onChange={(e) => setFieldOptions(e.target.value)}
-													placeholder="Option 1, Option 2, Option 3"
+													placeholder={fieldType === 'yesno' ? 'Yes, No (auto-filled)' : 'Option 1, Option 2, Option 3'}
 													className="w-full"
+													disabled={fieldType === 'yesno'}
 												/>
 											</div>
 										)}

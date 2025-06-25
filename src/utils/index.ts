@@ -65,7 +65,13 @@ export function getFieldTypeLabel(type: FieldType): string {
 		textarea: 'Text Area',
 		select: 'Dropdown',
 		checkbox: 'Checkbox',
-		radio: 'Radio Button'
+		radio: 'Radio Button',
+		money: 'Money/Currency',
+		phone: 'Phone Number',
+		address: 'Address',
+		yesno: 'Yes/No Question',
+		file: 'File Upload',
+		signature: 'Signature'
 	}
 	return typeMap[type]
 } 

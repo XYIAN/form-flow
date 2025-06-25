@@ -13,6 +13,8 @@ import { RadioButton } from 'primereact/radiobutton'
 import { Button } from 'primereact/button'
 import { Dialog } from 'primereact/dialog'
 import { Message } from 'primereact/message'
+import { InputMask } from 'primereact/inputmask'
+import { FileUpload } from 'primereact/fileupload'
 import { useAuth } from '@/context/AuthContext'
 import { useForms } from '@/context/FormContext'
 import { Form, FormField } from '@/types'
@@ -221,6 +223,127 @@ export default function FormPage({ params }: FormPageProps) {
 									</div>
 								))}
 							</div>
+						)}
+					/>
+				)
+
+			case 'money':
+				return (
+					<Controller
+						name={fieldName}
+						control={control}
+						rules={{ required: isRequired ? `${field.label} is required` : false }}
+						render={({ field: { onChange, value } }) => (
+							<InputMask
+								value={value || ''}
+								onChange={onChange}
+								placeholder={field.placeholder}
+								className={`w-full ${errors[fieldName] ? 'p-invalid' : ''}`}
+								mask="999,999,999.99"
+							/>
+						)}
+					/>
+				)
+
+			case 'phone':
+				return (
+					<Controller
+						name={fieldName}
+						control={control}
+						rules={{ required: isRequired ? `${field.label} is required` : false }}
+						render={({ field: { onChange, value } }) => (
+							<InputMask
+								value={value || ''}
+								onChange={onChange}
+								placeholder={field.placeholder}
+								className={`w-full ${errors[fieldName] ? 'p-invalid' : ''}`}
+								mask="(999) 999-9999"
+							/>
+						)}
+					/>
+				)
+
+			case 'address':
+				return (
+					<Controller
+						name={fieldName}
+						control={control}
+						rules={{ required: isRequired ? `${field.label} is required` : false }}
+						render={({ field: { onChange, value } }) => (
+							<InputText
+								value={value || ''}
+								onChange={onChange}
+								placeholder={field.placeholder}
+								className={`w-full ${errors[fieldName] ? 'p-invalid' : ''}`}
+							/>
+						)}
+					/>
+				)
+
+			case 'yesno':
+				return (
+					<Controller
+						name={fieldName}
+						control={control}
+						rules={{ required: isRequired ? `${field.label} is required` : false }}
+						render={({ field: { onChange, value } }) => (
+							<div className="flex flex-column gap-2">
+								{['Yes', 'No'].map((option, index) => (
+									<div key={index} className="flex align-items-center">
+										<RadioButton
+											inputId={`${fieldName}-${index}`}
+											name={fieldName}
+											value={option}
+											onChange={onChange}
+											checked={value === option}
+										/>
+										<label htmlFor={`${fieldName}-${index}`} className="ml-2 text-white">
+											{option}
+										</label>
+									</div>
+								))}
+							</div>
+						)}
+					/>
+				)
+
+			case 'file':
+				return (
+					<Controller
+						name={fieldName}
+						control={control}
+						rules={{ required: isRequired ? `${field.label} is required` : false }}
+						render={({ field: { onChange } }) => (
+							<FileUpload
+								mode="basic"
+								name={fieldName}
+								accept={field.allowedExtensions?.join(',') || '.pdf,.doc,.docx,.jpg,.jpeg,.png,.txt'}
+								maxFileSize={field.maxFileSize || 1000000}
+								customUpload
+								uploadHandler={(event) => {
+									onChange(event.files[0]?.name || '')
+								}}
+								auto
+								chooseLabel="Choose File"
+								className={`w-full ${errors[fieldName] ? 'p-invalid' : ''}`}
+							/>
+						)}
+					/>
+				)
+
+			case 'signature':
+				return (
+					<Controller
+						name={fieldName}
+						control={control}
+						rules={{ required: isRequired ? `${field.label} is required` : false }}
+						render={({ field: { onChange, value } }) => (
+							<InputText
+								value={value || ''}
+								onChange={onChange}
+								placeholder={field.placeholder}
+								className={`w-full ${errors[fieldName] ? 'p-invalid' : ''}`}
+							/>
 						)}
 					/>
 				)

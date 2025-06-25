@@ -5,20 +5,27 @@ export interface User {
 	createdAt: Date
 }
 
-export type FieldType = 'text' | 'email' | 'number' | 'date' | 'textarea' | 'select' | 'checkbox' | 'radio'
+export type FieldType = 'text' | 'email' | 'number' | 'date' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'money' | 'phone' | 'address' | 'yesno' | 'file' | 'signature'
 
 export interface FormField {
 	id: string
 	label: string
 	type: FieldType
 	required: boolean
-	options?: string[] // For select, radio, checkbox
+	options?: string[] // For select, radio, checkbox, yesno
 	placeholder?: string
 	validation?: {
 		min?: number
 		max?: number
 		pattern?: string
 	}
+	// File upload specific properties
+	maxFileSize?: number
+	allowedExtensions?: string[]
+	// Money field specific properties
+	currency?: string
+	// Address field specific properties
+	addressType?: 'full' | 'street' | 'city' | 'state' | 'zip'
 }
 
 export interface Form {
