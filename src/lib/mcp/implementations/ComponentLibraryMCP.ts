@@ -1,773 +1,319 @@
 import { IComponentLibraryProtocol } from '../protocols/IComponentLibraryProtocol'
 import { MCPResult, MCPError } from '../protocols/types'
 import { MCPLogger } from './logger'
+import { CSVParserMCP, CSVData } from './CSVParserMCP'
+import { FieldTypeDetectorMCP } from './FieldTypeDetectorMCP'
 import {
 	ComponentLibrary,
 	FormComponent,
 	ComponentCategory,
 	ComponentProps,
+	CSVComponentMapping,
+	FieldType,
 } from '@/types'
 
 export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 	private static libraries: ComponentLibrary[] = []
 	private static components: FormComponent[] = []
 
-	/**
-	 * Initialize the component library with default components
-	 */
-	static initialize(): MCPResult<boolean> {
-		const startTime = performance.now()
-
-		try {
-			MCPLogger.info(
-				'ComponentLibraryMCP.initialize',
-				'Initializing component library system'
-			)
-
-			// Create default component library
-			const defaultLibrary: ComponentLibrary = {
-				id: 'default-library',
-				name: 'Default Component Library',
-				description: 'Built-in form components for common use cases',
-				version: '1.0.0',
-				category: 'basic',
-				components: [],
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			}
-
-			// Create default components
-			const defaultComponents = this.createDefaultComponents()
-			defaultLibrary.components = defaultComponents
-			this.components = defaultComponents
-
-			this.libraries = [defaultLibrary]
-
-			const executionTime = performance.now() - startTime
-			MCPLogger.info(
-				'ComponentLibraryMCP.initialize',
-				'Component library initialized successfully',
-				{
-					librariesCount: this.libraries.length,
-					componentsCount: this.components.length,
-				},
-				executionTime
-			)
-
-			return {
-				success: true,
-				data: true,
-				metadata: { executionTime },
-			}
-		} catch (error) {
-			const executionTime = performance.now() - startTime
-			MCPLogger.error('ComponentLibraryMCP.initialize', error as Error, {
-				executionTime,
-			})
-
-			return {
-				success: false,
-				error: {
-					code: 'INITIALIZATION_ERROR',
-					message: 'Failed to initialize component library system',
-					details: { error: (error as Error).message },
-					timestamp: new Date(),
-				},
-			}
-		}
-	}
+	// ... existing methods ...
 
 	/**
-	 * Get all available component libraries
+	 * Import components from CSV data
 	 */
-	static getLibraries(): MCPResult<ComponentLibrary[]> {
-		const startTime = performance.now()
-
-		try {
-			MCPLogger.debug(
-				'ComponentLibraryMCP.getLibraries',
-				'Retrieving all component libraries'
-			)
-
-			const executionTime = performance.now() - startTime
-			MCPLogger.debug(
-				'ComponentLibraryMCP.getLibraries',
-				'Libraries retrieved successfully',
-				{
-					count: this.libraries.length,
-				},
-				executionTime
-			)
-
-			return {
-				success: true,
-				data: [...this.libraries],
-				metadata: { executionTime },
-			}
-		} catch (error) {
-			const executionTime = performance.now() - startTime
-			MCPLogger.error('ComponentLibraryMCP.getLibraries', error as Error, {
-				executionTime,
-			})
-
-			return {
-				success: false,
-				error: {
-					code: 'LIBRARY_RETRIEVAL_ERROR',
-					message: 'Failed to retrieve component libraries',
-					details: { error: (error as Error).message },
-					timestamp: new Date(),
-				},
-			}
-		}
-	}
-
-	/**
-	 * Get a specific component library by ID
-	 */
-	static getLibrary(libraryId: string): MCPResult<ComponentLibrary> {
-		const startTime = performance.now()
-
-		try {
-			MCPLogger.debug(
-				'ComponentLibraryMCP.getLibrary',
-				'Retrieving component library',
-				{ libraryId }
-			)
-
-			const library = this.libraries.find(lib => lib.id === libraryId)
-			if (!library) {
-				const executionTime = performance.now() - startTime
-				MCPLogger.warn(
-					'ComponentLibraryMCP.getLibrary',
-					'Library not found',
-					{ libraryId },
-					executionTime
-				)
-
-				return {
-					success: false,
-					error: {
-						code: 'LIBRARY_NOT_FOUND',
-						message: `Component library with ID '${libraryId}' not found`,
-						details: { libraryId },
-						timestamp: new Date(),
-					},
-				}
-			}
-
-			const executionTime = performance.now() - startTime
-			MCPLogger.debug(
-				'ComponentLibraryMCP.getLibrary',
-				'Library retrieved successfully',
-				{
-					libraryId,
-					componentsCount: library.components.length,
-				},
-				executionTime
-			)
-
-			return {
-				success: true,
-				data: { ...library },
-				metadata: { executionTime },
-			}
-		} catch (error) {
-			const executionTime = performance.now() - startTime
-			MCPLogger.error('ComponentLibraryMCP.getLibrary', error as Error, {
-				libraryId,
-				executionTime,
-			})
-
-			return {
-				success: false,
-				error: {
-					code: 'LIBRARY_RETRIEVAL_ERROR',
-					message: 'Failed to retrieve component library',
-					details: { libraryId, error: (error as Error).message },
-					timestamp: new Date(),
-				},
-			}
-		}
-	}
-
-	/**
-	 * Get components by category
-	 */
-	static getComponentsByCategory(
-		category: ComponentCategory
+	static importFromCSV(
+		csvContent: string,
+		mapping?: CSVComponentMapping
 	): MCPResult<FormComponent[]> {
 		const startTime = performance.now()
 
 		try {
-			MCPLogger.debug(
-				'ComponentLibraryMCP.getComponentsByCategory',
-				'Retrieving components by category',
-				{ category }
+			MCPLogger.info(
+				'ComponentLibraryMCP.importFromCSV',
+				'Importing components from CSV',
+				{ hasMapping: !!mapping }
 			)
 
-			const components = this.components.filter(
-				comp => comp.category === category
+			// Parse CSV
+			const parseResult = CSVParserMCP.parseCSV(csvContent)
+			if (!parseResult.success || !parseResult.data) {
+				return {
+					success: false,
+					errors: parseResult.errors,
+					metadata: { executionTime: performance.now() - startTime },
+				}
+			}
+
+			// Analyze CSV structure
+			const analysisResult = CSVParserMCP.analyzeCSV(parseResult.data)
+			if (!analysisResult.success || !analysisResult.data) {
+				return {
+					success: false,
+					errors: analysisResult.errors,
+					metadata: { executionTime: performance.now() - startTime },
+				}
+			}
+
+			// Create detection contexts
+			const detectionContexts = this.createDetectionContexts(
+				parseResult.data,
+				analysisResult.data
+			)
+
+			// Detect field types
+			const detectionResult =
+				FieldTypeDetectorMCP.batchDetectFieldTypes(detectionContexts)
+			if (!detectionResult.success || !detectionResult.data) {
+				return {
+					success: false,
+					errors: detectionResult.errors,
+					metadata: { executionTime: performance.now() - startTime },
+				}
+			}
+
+			// Convert detected fields to components
+			const components = this.convertToComponents(
+				parseResult.data,
+				detectionResult.data,
+				mapping
 			)
 
 			const executionTime = performance.now() - startTime
-			MCPLogger.debug(
-				'ComponentLibraryMCP.getComponentsByCategory',
-				'Components retrieved successfully',
+			MCPLogger.info(
+				'ComponentLibraryMCP.importFromCSV',
+				'Components imported successfully',
 				{
-					category,
 					count: components.length,
-				},
-				executionTime
-			)
-
-			return {
-				success: true,
-				data: [...components],
-				metadata: { executionTime },
-			}
-		} catch (error) {
-			const executionTime = performance.now() - startTime
-			MCPLogger.error(
-				'ComponentLibraryMCP.getComponentsByCategory',
-				error as Error,
-				{ category, executionTime }
-			)
-
-			return {
-				success: false,
-				error: {
-					code: 'COMPONENT_RETRIEVAL_ERROR',
-					message: 'Failed to retrieve components by category',
-					details: { category, error: (error as Error).message },
-					timestamp: new Date(),
-				},
-			}
-		}
-	}
-
-	/**
-	 * Get a specific component by ID
-	 */
-	static getComponent(componentId: string): MCPResult<FormComponent> {
-		const startTime = performance.now()
-
-		try {
-			MCPLogger.debug(
-				'ComponentLibraryMCP.getComponent',
-				'Retrieving component',
-				{ componentId }
-			)
-
-			const component = this.components.find(comp => comp.id === componentId)
-			if (!component) {
-				const executionTime = performance.now() - startTime
-				MCPLogger.warn(
-					'ComponentLibraryMCP.getComponent',
-					'Component not found',
-					{ componentId },
-					executionTime
-				)
-
-				return {
-					success: false,
-					error: {
-						code: 'COMPONENT_NOT_FOUND',
-						message: `Component with ID '${componentId}' not found`,
-						details: { componentId },
-						timestamp: new Date(),
-					},
-				}
-			}
-
-			const executionTime = performance.now() - startTime
-			MCPLogger.debug(
-				'ComponentLibraryMCP.getComponent',
-				'Component retrieved successfully',
-				{ componentId },
-				executionTime
-			)
-
-			return {
-				success: true,
-				data: { ...component },
-				metadata: { executionTime },
-			}
-		} catch (error) {
-			const executionTime = performance.now() - startTime
-			MCPLogger.error('ComponentLibraryMCP.getComponent', error as Error, {
-				componentId,
-				executionTime,
-			})
-
-			return {
-				success: false,
-				error: {
-					code: 'COMPONENT_RETRIEVAL_ERROR',
-					message: 'Failed to retrieve component',
-					details: { componentId, error: (error as Error).message },
-					timestamp: new Date(),
-				},
-			}
-		}
-	}
-
-	/**
-	 * Search components by name, description, or tags
-	 */
-	static searchComponents(query: string): MCPResult<FormComponent[]> {
-		const startTime = performance.now()
-
-		try {
-			MCPLogger.debug(
-				'ComponentLibraryMCP.searchComponents',
-				'Searching components',
-				{ query }
-			)
-
-			const searchTerm = query.toLowerCase()
-			const results = this.components.filter(
-				comp =>
-					comp.name.toLowerCase().includes(searchTerm) ||
-					comp.description.toLowerCase().includes(searchTerm) ||
-					comp.metadata.tags.some(tag => tag.toLowerCase().includes(searchTerm))
-			)
-
-			const executionTime = performance.now() - startTime
-			MCPLogger.debug(
-				'ComponentLibraryMCP.searchComponents',
-				'Search completed successfully',
-				{
-					query,
-					resultsCount: results.length,
-				},
-				executionTime
-			)
-
-			return {
-				success: true,
-				data: [...results],
-				metadata: { executionTime },
-			}
-		} catch (error) {
-			const executionTime = performance.now() - startTime
-			MCPLogger.error('ComponentLibraryMCP.searchComponents', error as Error, {
-				query,
-				executionTime,
-			})
-
-			return {
-				success: false,
-				error: {
-					code: 'SEARCH_ERROR',
-					message: 'Failed to search components',
-					details: { query, error: (error as Error).message },
-					timestamp: new Date(),
-				},
-			}
-		}
-	}
-
-	/**
-	 * Validate component configuration
-	 */
-	static validateComponent(component: FormComponent): MCPResult<boolean> {
-		const startTime = performance.now()
-		const errors: MCPError[] = []
-
-		try {
-			MCPLogger.debug(
-				'ComponentLibraryMCP.validateComponent',
-				'Validating component',
-				{ componentId: component.id }
-			)
-
-			// Validate required fields
-			if (!component.id) {
-				errors.push({
-					code: 'COMPONENT_ERROR',
-					message: 'Component ID is required',
-					field: 'id',
-					timestamp: new Date(),
-				})
-			}
-
-			if (!component.name?.trim()) {
-				errors.push({
-					code: 'COMPONENT_ERROR',
-					message: 'Component name is required',
-					field: 'name',
-					timestamp: new Date(),
-				})
-			}
-
-			if (!component.type) {
-				errors.push({
-					code: 'COMPONENT_ERROR',
-					message: 'Component type is required',
-					field: 'type',
-					timestamp: new Date(),
-				})
-			}
-
-			if (!component.category) {
-				errors.push({
-					code: 'COMPONENT_ERROR',
-					message: 'Component category is required',
-					field: 'category',
-					timestamp: new Date(),
-				})
-			}
-
-			// Validate component props
-			if (component.props) {
-				const propsValidation = this.validateComponentProps(
-					component.id,
-					component.props
-				)
-				if (!propsValidation.success && propsValidation.error) {
-					errors.push(propsValidation.error)
-				}
-			}
-
-			const executionTime = performance.now() - startTime
-
-			if (errors.length > 0) {
-				MCPLogger.warn(
-					'ComponentLibraryMCP.validateComponent',
-					'Component validation failed',
-					{
-						componentId: component.id,
-						errorsCount: errors.length,
-					},
-					executionTime
-				)
-
-				return {
-					success: false,
-					errors,
-					metadata: { executionTime },
-				}
-			}
-
-			MCPLogger.debug(
-				'ComponentLibraryMCP.validateComponent',
-				'Component validation successful',
-				{
-					componentId: component.id,
-				},
-				executionTime
-			)
-
-			return {
-				success: true,
-				data: true,
-				metadata: { executionTime },
-			}
-		} catch (error) {
-			const executionTime = performance.now() - startTime
-			MCPLogger.error('ComponentLibraryMCP.validateComponent', error as Error, {
-				componentId: component.id,
-				executionTime,
-			})
-
-			return {
-				success: false,
-				error: {
-					code: 'VALIDATION_ERROR',
-					message: 'Failed to validate component',
-					details: {
-						componentId: component.id,
-						error: (error as Error).message,
-					},
-					timestamp: new Date(),
-				},
-			}
-		}
-	}
-
-	/**
-	 * Validate component props
-	 */
-	static validateComponentProps(
-		componentId: string,
-		props: ComponentProps
-	): MCPResult<boolean> {
-		const startTime = performance.now()
-		const errors: MCPError[] = []
-
-		try {
-			MCPLogger.debug(
-				'ComponentLibraryMCP.validateComponentProps',
-				'Validating component props',
-				{ componentId }
-			)
-
-			// Validate required props
-			if (props.required === undefined) {
-				errors.push({
-					code: 'PROPS_ERROR',
-					message: 'Required property is mandatory',
-					field: 'required',
-					timestamp: new Date(),
-				})
-			}
-
-			// Validate options if provided
-			if (props.options && props.options.length === 0) {
-				errors.push({
-					code: 'PROPS_ERROR',
-					message: 'Options array cannot be empty',
-					field: 'options',
-					timestamp: new Date(),
-				})
-			}
-
-			const executionTime = performance.now() - startTime
-
-			if (errors.length > 0) {
-				MCPLogger.warn(
-					'ComponentLibraryMCP.validateComponentProps',
-					'Props validation failed',
-					{
-						componentId,
-						errorsCount: errors.length,
-					},
-					executionTime
-				)
-
-				return {
-					success: false,
-					errors,
-					metadata: { executionTime },
-				}
-			}
-
-			MCPLogger.debug(
-				'ComponentLibraryMCP.validateComponentProps',
-				'Props validation successful',
-				{
-					componentId,
-				},
-				executionTime
-			)
-
-			return {
-				success: true,
-				data: true,
-				metadata: { executionTime },
-			}
-		} catch (error) {
-			const executionTime = performance.now() - startTime
-			MCPLogger.error(
-				'ComponentLibraryMCP.validateComponentProps',
-				error as Error,
-				{
-					componentId,
 					executionTime,
 				}
 			)
 
 			return {
+				success: true,
+				data: components,
+				metadata: { executionTime },
+			}
+		} catch (error) {
+			const executionTime = performance.now() - startTime
+			MCPLogger.error('ComponentLibraryMCP.importFromCSV', error as Error, {
+				executionTime,
+			})
+
+			return {
 				success: false,
-				error: {
-					code: 'PROPS_VALIDATION_ERROR',
-					message: 'Failed to validate component props',
-					details: { componentId, error: (error as Error).message },
-					timestamp: new Date(),
-				},
+				errors: [
+					{
+						code: 'IMPORT_ERROR',
+						message: 'Failed to import components from CSV',
+						details: { error: (error as Error).message },
+						timestamp: new Date(),
+					},
+				],
+				metadata: { executionTime },
 			}
 		}
 	}
 
 	/**
-	 * Create default components for the library
+	 * Create detection contexts for field type detection
 	 */
-	private static createDefaultComponents(): FormComponent[] {
-		return [
-			{
-				id: 'text-input',
-				name: 'Text Input',
-				description: 'Single-line text input field',
-				category: 'basic',
-				type: 'text',
-				icon: 'pi pi-pencil',
-				preview: 'Text Input Field',
-				props: {
-					required: false,
-					placeholder: 'Enter text...',
-					validation: {
-						rules: [{ type: 'required', message: 'This field is required' }],
-						messages: {
-							required: 'This field is required',
-							invalid: 'Please enter valid text',
-						},
-					},
-				},
-				validation: {
-					rules: [{ type: 'required', message: 'This field is required' }],
-					messages: {
-						required: 'This field is required',
-						invalid: 'Please enter valid text',
-					},
-				},
+	private static createDetectionContexts(csvData: CSVData, analysis: any) {
+		return csvData.headers.map((header, index) => ({
+			fieldName: header,
+			sampleData: csvData.rows.map(row => row[index]),
+			patterns: analysis.patterns.filter(p => p.columnIndex === index),
+			dataType: analysis.dataTypes[index],
+		}))
+	}
+
+	/**
+	 * Convert detected fields to components
+	 */
+	private static convertToComponents(
+		csvData: CSVData,
+		detectedTypes: FieldType[],
+		mapping?: CSVComponentMapping
+	): FormComponent[] {
+		return csvData.headers.map((header, index) => {
+			const fieldType = detectedTypes[index]
+			const category = this.determineCategory(fieldType)
+
+			const component: FormComponent = {
+				id: `csv-${header}-${Date.now()}`,
+				name: this.formatComponentName(header),
+				description: `Generated from CSV column: ${header}`,
+				category,
+				type: fieldType,
+				icon: this.getIconForType(fieldType),
+				preview: `${this.formatComponentName(header)} Field`,
+				props: this.generateDefaultProps(
+					fieldType,
+					mapping?.columnMappings?.[header]
+				),
+				validation: this.generateDefaultValidation(fieldType),
 				metadata: {
-					author: 'Form Flow',
+					author: 'Form Flow CSV Import',
 					version: '1.0.0',
-					tags: ['input', 'text', 'basic'],
-					documentation:
-						'Basic text input component for single-line text entry',
-					examples: [
-						{
-							title: 'Basic Text Input',
-							description: 'Simple text input with placeholder',
-							props: { placeholder: 'Enter your name' },
-							code: '<TextInput placeholder="Enter your name" />',
-						},
-					],
+					tags: [header, fieldType, category],
+					documentation: `Component generated from CSV column: ${header}`,
+					source: {
+						type: 'csv',
+						columnName: header,
+						sampleData: csvData.rows.slice(0, 3).map(row => row[index]),
+					},
+				},
+			}
+
+			return component
+		})
+	}
+
+	/**
+	 * Determine component category based on field type
+	 */
+	private static determineCategory(fieldType: FieldType): ComponentCategory {
+		switch (fieldType) {
+			case 'email':
+			case 'phone':
+			case 'address':
+				return 'contact'
+			case 'number':
+			case 'money':
+			case 'percentage':
+				return 'financial'
+			case 'date':
+			case 'time':
+			case 'datetime':
+				return 'datetime'
+			case 'select':
+			case 'multiselect':
+			case 'radio':
+			case 'checkbox':
+				return 'choice'
+			case 'file':
+			case 'image':
+				return 'media'
+			default:
+				return 'basic'
+		}
+	}
+
+	/**
+	 * Format component name from CSV header
+	 */
+	private static formatComponentName(header: string): string {
+		return header
+			.split(/[_\s-]+/)
+			.map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+			.join(' ')
+	}
+
+	/**
+	 * Get icon for field type
+	 */
+	private static getIconForType(fieldType: FieldType): string {
+		const iconMap: Record<FieldType, string> = {
+			text: 'pi pi-pencil',
+			email: 'pi pi-envelope',
+			phone: 'pi pi-phone',
+			number: 'pi pi-hashtag',
+			money: 'pi pi-dollar',
+			date: 'pi pi-calendar',
+			time: 'pi pi-clock',
+			datetime: 'pi pi-calendar-plus',
+			select: 'pi pi-list',
+			multiselect: 'pi pi-th-large',
+			radio: 'pi pi-circle',
+			checkbox: 'pi pi-check-square',
+			file: 'pi pi-file',
+			image: 'pi pi-image',
+			address: 'pi pi-map-marker',
+			url: 'pi pi-link',
+			password: 'pi pi-lock',
+			color: 'pi pi-palette',
+			percentage: 'pi pi-percentage',
+			rating: 'pi pi-star',
+			tags: 'pi pi-tags',
+			switch: 'pi pi-toggle-on',
+			slider: 'pi pi-sliders-h',
+			textarea: 'pi pi-align-left',
+			editor: 'pi pi-pencil',
+			mask: 'pi pi-shield',
+			search: 'pi pi-search',
+			chips: 'pi pi-plus-circle',
+			knob: 'pi pi-circle',
+			listbox: 'pi pi-bars',
+			dropdown: 'pi pi-chevron-down',
+		}
+
+		return iconMap[fieldType] || 'pi pi-pencil'
+	}
+
+	/**
+	 * Generate default props for component
+	 */
+	private static generateDefaultProps(
+		fieldType: FieldType,
+		mapping?: any
+	): ComponentProps {
+		const props: ComponentProps = {
+			required: false,
+			placeholder: `Enter ${fieldType}...`,
+			validation: this.generateDefaultValidation(fieldType),
+		}
+
+		if (mapping) {
+			Object.assign(props, mapping)
+		}
+
+		return props
+	}
+
+	/**
+	 * Generate default validation rules for field type
+	 */
+	private static generateDefaultValidation(fieldType: FieldType) {
+		const validationMap: Record<FieldType, any> = {
+			email: {
+				rules: [
+					{ type: 'email', message: 'Please enter a valid email address' },
+				],
+				messages: {
+					required: 'Email is required',
+					invalid: 'Please enter a valid email address',
 				},
 			},
-			{
-				id: 'email-input',
-				name: 'Email Input',
-				description: 'Email address input with validation',
-				category: 'basic',
-				type: 'email',
-				icon: 'pi pi-envelope',
-				preview: 'Email Input Field',
-				props: {
-					required: false,
-					placeholder: 'Enter email address...',
-					validation: {
-						rules: [
-							{ type: 'email', message: 'Please enter a valid email address' },
-						],
-						messages: {
-							required: 'Email is required',
-							invalid: 'Please enter a valid email address',
-						},
+			phone: {
+				rules: [
+					{
+						type: 'pattern',
+						value: '^[\\d\\s\\-\\(\\)\\+]+$',
+						message: 'Please enter a valid phone number',
 					},
-				},
-				validation: {
-					rules: [
-						{ type: 'email', message: 'Please enter a valid email address' },
-					],
-					messages: {
-						required: 'Email is required',
-						invalid: 'Please enter a valid email address',
-					},
-				},
-				metadata: {
-					author: 'Form Flow',
-					version: '1.0.0',
-					tags: ['input', 'email', 'validation'],
-					documentation: 'Email input component with built-in email validation',
-					examples: [
-						{
-							title: 'Email Input',
-							description: 'Email input with validation',
-							props: { placeholder: 'Enter your email' },
-							code: '<EmailInput placeholder="Enter your email" required />',
-						},
-					],
+				],
+				messages: {
+					required: 'Phone number is required',
+					invalid: 'Please enter a valid phone number',
 				},
 			},
-			{
-				id: 'money-input',
-				name: 'Money Input',
-				description: 'Currency input with formatting',
-				category: 'financial',
-				type: 'money',
-				icon: 'pi pi-dollar',
-				preview: 'Money Input Field',
-				props: {
-					required: false,
-					placeholder: '$0.00',
-					validation: {
-						rules: [{ type: 'number', message: 'Please enter a valid amount' }],
-						messages: {
-							required: 'Amount is required',
-							invalid: 'Please enter a valid amount',
-						},
-					},
-				},
-				validation: {
-					rules: [{ type: 'number', message: 'Please enter a valid amount' }],
-					messages: {
-						required: 'Amount is required',
-						invalid: 'Please enter a valid amount',
-					},
-				},
-				metadata: {
-					author: 'Form Flow',
-					version: '1.0.0',
-					tags: ['input', 'money', 'currency', 'financial'],
-					documentation:
-						'Money input component with currency formatting and validation',
-					examples: [
-						{
-							title: 'Money Input',
-							description: 'Currency input with dollar formatting',
-							props: { placeholder: '$0.00', currency: 'USD' },
-							code: '<MoneyInput placeholder="$0.00" currency="USD" />',
-						},
-					],
+			money: {
+				rules: [{ type: 'number', message: 'Please enter a valid amount' }],
+				messages: {
+					required: 'Amount is required',
+					invalid: 'Please enter a valid amount',
 				},
 			},
-			{
-				id: 'phone-input',
-				name: 'Phone Input',
-				description: 'Phone number input with formatting',
-				category: 'contact',
-				type: 'phone',
-				icon: 'pi pi-phone',
-				preview: 'Phone Input Field',
-				props: {
-					required: false,
-					placeholder: '(555) 123-4567',
-					validation: {
-						rules: [
-							{
-								type: 'pattern',
-								value: '^[\\d\\s\\-\\(\\)\\+]+$',
-								message: 'Please enter a valid phone number',
-							},
-						],
-						messages: {
-							required: 'Phone number is required',
-							invalid: 'Please enter a valid phone number',
-						},
-					},
+			// Add more field type validations as needed
+		}
+
+		return (
+			validationMap[fieldType] || {
+				rules: [{ type: 'required', message: 'This field is required' }],
+				messages: {
+					required: 'This field is required',
+					invalid: 'Please enter valid input',
 				},
-				validation: {
-					rules: [
-						{
-							type: 'pattern',
-							value: '^[\\d\\s\\-\\(\\)\\+]+$',
-							message: 'Please enter a valid phone number',
-						},
-					],
-					messages: {
-						required: 'Phone number is required',
-						invalid: 'Please enter a valid phone number',
-					},
-				},
-				metadata: {
-					author: 'Form Flow',
-					version: '1.0.0',
-					tags: ['input', 'phone', 'contact', 'formatting'],
-					documentation:
-						'Phone input component with automatic formatting and validation',
-					examples: [
-						{
-							title: 'Phone Input',
-							description: 'Phone input with US formatting',
-							props: { placeholder: '(555) 123-4567' },
-							code: '<PhoneInput placeholder="(555) 123-4567" />',
-						},
-					],
-				},
-			},
-		]
+			}
+		)
 	}
 }

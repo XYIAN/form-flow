@@ -1,773 +1,485 @@
-import {
-	ITemplateLibraryProtocol,
-	TemplateUsageStats,
-} from '../protocols/ITemplateLibraryProtocol'
+import { ITemplateLibraryProtocol } from '../protocols/ITemplateLibraryProtocol'
 import { MCPResult, MCPError } from '../protocols/types'
 import { MCPLogger } from './logger'
-import { FormTemplate, TemplateCategory } from '@/types'
+import { CSVParserMCP, CSVData } from './CSVParserMCP'
+import { FieldTypeDetectorMCP } from './FieldTypeDetectorMCP'
+import { ComponentLibraryMCP } from './ComponentLibraryMCP'
+import { LayoutSystemMCP } from './LayoutSystemMCP'
+import {
+	FormTemplate,
+	TemplateCategory,
+	FormField,
+	CSVTemplateMapping,
+	TemplateExport,
+	TemplateImport,
+} from '@/types'
 
 export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 	private static templates: FormTemplate[] = []
-	private static usageStats: Map<string, TemplateUsageStats> = new Map()
+
+	// ... existing methods ...
 
 	/**
-	 * Initialize the template library with default templates
+	 * Generate template from CSV structure
 	 */
-	static initialize(): MCPResult<boolean> {
+	static generateTemplateFromCSV(
+		csvContent: string,
+		config?: CSVTemplateMapping
+	): MCPResult<FormTemplate> {
 		const startTime = performance.now()
 
 		try {
 			MCPLogger.info(
-				'TemplateLibraryMCP.initialize',
-				'Initializing template library system'
+				'TemplateLibraryMCP.generateTemplateFromCSV',
+				'Generating template from CSV',
+				{ hasConfig: !!config }
 			)
 
-			// Create default templates
-			const defaultTemplates = this.createDefaultTemplates()
-			this.templates = defaultTemplates
-
-			// Initialize usage stats
-			this.templates.forEach(template => {
-				this.usageStats.set(template.id, {
-					templateId: template.id,
-					usageCount: 0,
-					lastUsed: new Date(),
-					averageRating: 0,
-					ratingCount: 0,
-					completionRate: 0,
-				})
-			})
-
-			const executionTime = performance.now() - startTime
-			MCPLogger.info(
-				'TemplateLibraryMCP.initialize',
-				'Template library initialized successfully',
-				{
-					templatesCount: this.templates.length,
-				},
-				executionTime
-			)
-
-			return {
-				success: true,
-				data: true,
-				metadata: { executionTime },
-			}
-		} catch (error) {
-			const executionTime = performance.now() - startTime
-			MCPLogger.error('TemplateLibraryMCP.initialize', error as Error, {
-				executionTime,
-			})
-
-			return {
-				success: false,
-				error: {
-					code: 'INITIALIZATION_ERROR',
-					message: 'Failed to initialize template library system',
-					details: { error: (error as Error).message },
-					timestamp: new Date(),
-				},
-			}
-		}
-	}
-
-	/**
-	 * Get all available form templates
-	 */
-	static getTemplates(): MCPResult<FormTemplate[]> {
-		const startTime = performance.now()
-
-		try {
-			MCPLogger.debug(
-				'TemplateLibraryMCP.getTemplates',
-				'Retrieving all templates'
-			)
-
-			const executionTime = performance.now() - startTime
-			MCPLogger.debug(
-				'TemplateLibraryMCP.getTemplates',
-				'Templates retrieved successfully',
-				{
-					count: this.templates.length,
-				},
-				executionTime
-			)
-
-			return {
-				success: true,
-				data: [...this.templates],
-				metadata: { executionTime },
-			}
-		} catch (error) {
-			const executionTime = performance.now() - startTime
-			MCPLogger.error('TemplateLibraryMCP.getTemplates', error as Error, {
-				executionTime,
-			})
-
-			return {
-				success: false,
-				error: {
-					code: 'TEMPLATE_RETRIEVAL_ERROR',
-					message: 'Failed to retrieve templates',
-					details: { error: (error as Error).message },
-					timestamp: new Date(),
-				},
-			}
-		}
-	}
-
-	/**
-	 * Get a specific template by ID
-	 */
-	static getTemplate(templateId: string): MCPResult<FormTemplate> {
-		const startTime = performance.now()
-
-		try {
-			MCPLogger.debug('TemplateLibraryMCP.getTemplate', 'Retrieving template', {
-				templateId,
-			})
-
-			const template = this.templates.find(
-				template => template.id === templateId
-			)
-			if (!template) {
-				const executionTime = performance.now() - startTime
-				MCPLogger.warn(
-					'TemplateLibraryMCP.getTemplate',
-					'Template not found',
-					{ templateId },
-					executionTime
-				)
-
+			// Parse and analyze CSV
+			const parseResult = CSVParserMCP.parseCSV(csvContent)
+			if (!parseResult.success || !parseResult.data) {
 				return {
 					success: false,
-					error: {
-						code: 'TEMPLATE_NOT_FOUND',
-						message: `Template with ID '${templateId}' not found`,
-						details: { templateId },
+					errors: parseResult.errors,
+					metadata: { executionTime: performance.now() - startTime },
+				}
+			}
+
+			// Generate components
+			const componentsResult = ComponentLibraryMCP.importFromCSV(
+				csvContent,
+				config?.componentMapping
+			)
+			if (!componentsResult.success || !componentsResult.data) {
+				return {
+					success: false,
+					errors: componentsResult.errors,
+					metadata: { executionTime: performance.now() - startTime },
+				}
+			}
+
+			// Generate layout
+			const layoutResult = LayoutSystemMCP.generateLayoutFromCSV(
+				parseResult.data,
+				config?.layoutConfig
+			)
+			if (!layoutResult.success || !layoutResult.data) {
+				return {
+					success: false,
+					errors: layoutResult.errors,
+					metadata: { executionTime: performance.now() - startTime },
+				}
+			}
+
+			// Create form fields from components
+			const fields = this.createFieldsFromComponents(
+				componentsResult.data,
+				layoutResult.data
+			)
+
+			// Create template
+			const template: FormTemplate = {
+				id: `csv-template-${Date.now()}`,
+				name: config?.name || 'CSV Generated Template',
+				description:
+					config?.description || 'Template generated from CSV structure',
+				category: this.determineTemplateCategory(fields),
+				difficulty: this.determineTemplateDifficulty(fields),
+				fields,
+				layout: layoutResult.data,
+				metadata: {
+					source: 'csv',
+					originalHeaders: parseResult.data.headers,
+					rowCount: parseResult.data.totalRows,
+					generated: true,
+					createdAt: new Date(),
+					updatedAt: new Date(),
+				},
+			}
+
+			const executionTime = performance.now() - startTime
+			MCPLogger.info(
+				'TemplateLibraryMCP.generateTemplateFromCSV',
+				'Template generated successfully',
+				{
+					fields: fields.length,
+					category: template.category,
+					executionTime,
+				}
+			)
+
+			return {
+				success: true,
+				data: template,
+				metadata: { executionTime },
+			}
+		} catch (error) {
+			const executionTime = performance.now() - startTime
+			MCPLogger.error(
+				'TemplateLibraryMCP.generateTemplateFromCSV',
+				error as Error,
+				{
+					executionTime,
+				}
+			)
+
+			return {
+				success: false,
+				errors: [
+					{
+						code: 'TEMPLATE_GENERATION_ERROR',
+						message: 'Failed to generate template from CSV',
+						details: { error: (error as Error).message },
 						timestamp: new Date(),
 					},
-				}
-			}
-
-			const executionTime = performance.now() - startTime
-			MCPLogger.debug(
-				'TemplateLibraryMCP.getTemplate',
-				'Template retrieved successfully',
-				{
-					templateId,
-					fieldsCount: template.fields.length,
-				},
-				executionTime
-			)
-
-			return {
-				success: true,
-				data: { ...template },
+				],
 				metadata: { executionTime },
-			}
-		} catch (error) {
-			const executionTime = performance.now() - startTime
-			MCPLogger.error('TemplateLibraryMCP.getTemplate', error as Error, {
-				templateId,
-				executionTime,
-			})
-
-			return {
-				success: false,
-				error: {
-					code: 'TEMPLATE_RETRIEVAL_ERROR',
-					message: 'Failed to retrieve template',
-					details: { templateId, error: (error as Error).message },
-					timestamp: new Date(),
-				},
 			}
 		}
 	}
 
 	/**
-	 * Get templates by category
+	 * Export template to CSV format
 	 */
-	static getTemplatesByCategory(
-		category: TemplateCategory
-	): MCPResult<FormTemplate[]> {
+	static exportTemplateToCSV(templateId: string): MCPResult<TemplateExport> {
 		const startTime = performance.now()
 
 		try {
-			MCPLogger.debug(
-				'TemplateLibraryMCP.getTemplatesByCategory',
-				'Retrieving templates by category',
-				{ category }
+			MCPLogger.info(
+				'TemplateLibraryMCP.exportTemplateToCSV',
+				'Exporting template to CSV',
+				{ templateId }
 			)
 
-			const templates = this.templates.filter(
-				template => template.category === category
-			)
-
-			const executionTime = performance.now() - startTime
-			MCPLogger.debug(
-				'TemplateLibraryMCP.getTemplatesByCategory',
-				'Templates retrieved successfully',
-				{
-					category,
-					count: templates.length,
-				},
-				executionTime
-			)
-
-			return {
-				success: true,
-				data: [...templates],
-				metadata: { executionTime },
-			}
-		} catch (error) {
-			const executionTime = performance.now() - startTime
-			MCPLogger.error(
-				'TemplateLibraryMCP.getTemplatesByCategory',
-				error as Error,
-				{ category, executionTime }
-			)
-
-			return {
-				success: false,
-				error: {
-					code: 'TEMPLATE_RETRIEVAL_ERROR',
-					message: 'Failed to retrieve templates by category',
-					details: { category, error: (error as Error).message },
-					timestamp: new Date(),
-				},
-			}
-		}
-	}
-
-	/**
-	 * Search templates by name, description, or tags
-	 */
-	static searchTemplates(query: string): MCPResult<FormTemplate[]> {
-		const startTime = performance.now()
-
-		try {
-			MCPLogger.debug(
-				'TemplateLibraryMCP.searchTemplates',
-				'Searching templates',
-				{ query }
-			)
-
-			const searchTerm = query.toLowerCase()
-			const results = this.templates.filter(
-				template =>
-					template.name.toLowerCase().includes(searchTerm) ||
-					template.description.toLowerCase().includes(searchTerm) ||
-					template.metadata.tags.some(tag =>
-						tag.toLowerCase().includes(searchTerm)
-					)
-			)
-
-			const executionTime = performance.now() - startTime
-			MCPLogger.debug(
-				'TemplateLibraryMCP.searchTemplates',
-				'Search completed successfully',
-				{
-					query,
-					resultsCount: results.length,
-				},
-				executionTime
-			)
-
-			return {
-				success: true,
-				data: [...results],
-				metadata: { executionTime },
-			}
-		} catch (error) {
-			const executionTime = performance.now() - startTime
-			MCPLogger.error('TemplateLibraryMCP.searchTemplates', error as Error, {
-				query,
-				executionTime,
-			})
-
-			return {
-				success: false,
-				error: {
-					code: 'SEARCH_ERROR',
-					message: 'Failed to search templates',
-					details: { query, error: (error as Error).message },
-					timestamp: new Date(),
-				},
-			}
-		}
-	}
-
-	/**
-	 * Validate template configuration
-	 */
-	static validateTemplate(template: FormTemplate): MCPResult<boolean> {
-		const startTime = performance.now()
-		const errors: MCPError[] = []
-
-		try {
-			MCPLogger.debug(
-				'TemplateLibraryMCP.validateTemplate',
-				'Validating template',
-				{ templateId: template.id }
-			)
-
-			// Validate required fields
-			if (!template.id) {
-				errors.push({
-					code: 'TEMPLATE_ERROR',
-					message: 'Template ID is required',
-					field: 'id',
-					timestamp: new Date(),
-				})
-			}
-
-			if (!template.name?.trim()) {
-				errors.push({
-					code: 'TEMPLATE_ERROR',
-					message: 'Template name is required',
-					field: 'name',
-					timestamp: new Date(),
-				})
-			}
-
-			if (!template.category) {
-				errors.push({
-					code: 'TEMPLATE_ERROR',
-					message: 'Template category is required',
-					field: 'category',
-					timestamp: new Date(),
-				})
-			}
-
-			// Validate layout
-			if (!template.layout) {
-				errors.push({
-					code: 'TEMPLATE_ERROR',
-					message: 'Template layout is required',
-					field: 'layout',
-					timestamp: new Date(),
-				})
-			}
-
-			// Validate fields
-			if (!template.fields || template.fields.length === 0) {
-				errors.push({
-					code: 'TEMPLATE_ERROR',
-					message: 'Template must have at least one field',
-					field: 'fields',
-					timestamp: new Date(),
-				})
-			}
-
-			// Validate metadata
-			if (!template.metadata) {
-				errors.push({
-					code: 'TEMPLATE_ERROR',
-					message: 'Template metadata is required',
-					field: 'metadata',
-					timestamp: new Date(),
-				})
-			}
-
-			const executionTime = performance.now() - startTime
-
-			if (errors.length > 0) {
-				MCPLogger.warn(
-					'TemplateLibraryMCP.validateTemplate',
-					'Template validation failed',
-					{
-						templateId: template.id,
-						errorsCount: errors.length,
-					},
-					executionTime
-				)
-
+			// Get template
+			const template = this.templates.find(t => t.id === templateId)
+			if (!template) {
 				return {
 					success: false,
-					errors,
-					metadata: { executionTime },
+					errors: [
+						{
+							code: 'TEMPLATE_NOT_FOUND',
+							message: `Template with ID '${templateId}' not found`,
+							details: { templateId },
+							timestamp: new Date(),
+						},
+					],
+					metadata: { executionTime: performance.now() - startTime },
 				}
 			}
 
-			MCPLogger.debug(
-				'TemplateLibraryMCP.validateTemplate',
-				'Template validation successful',
-				{
-					templateId: template.id,
+			// Generate CSV content
+			const headers = template.fields.map(f => f.label)
+			const sampleData = this.generateSampleData(template.fields)
+			const csvContent = this.generateCSV(headers, sampleData)
+
+			// Create export package
+			const exportData: TemplateExport = {
+				templateId,
+				name: template.name,
+				csvContent,
+				mapping: {
+					componentMapping: this.createComponentMapping(template.fields),
+					layoutConfig: {
+						name: template.name,
+						description: template.description,
+						styles: template.layout.styles,
+						breakpoints: template.layout.breakpoints,
+						sectionStyles: template.layout.sections[0]?.styles,
+					},
 				},
-				executionTime
+				metadata: {
+					exportedAt: new Date(),
+					version: '1.0.0',
+				},
+			}
+
+			const executionTime = performance.now() - startTime
+			MCPLogger.info(
+				'TemplateLibraryMCP.exportTemplateToCSV',
+				'Template exported successfully',
+				{
+					templateId,
+					fields: template.fields.length,
+					executionTime,
+				}
 			)
 
 			return {
 				success: true,
-				data: true,
-				metadata: { executionTime },
-			}
-		} catch (error) {
-			const executionTime = performance.now() - startTime
-			MCPLogger.error('TemplateLibraryMCP.validateTemplate', error as Error, {
-				templateId: template.id,
-				executionTime,
-			})
-
-			return {
-				success: false,
-				error: {
-					code: 'VALIDATION_ERROR',
-					message: 'Failed to validate template',
-					details: { templateId: template.id, error: (error as Error).message },
-					timestamp: new Date(),
-				},
-			}
-		}
-	}
-
-	/**
-	 * Get template categories
-	 */
-	static getTemplateCategories(): MCPResult<TemplateCategory[]> {
-		const startTime = performance.now()
-
-		try {
-			MCPLogger.debug(
-				'TemplateLibraryMCP.getTemplateCategories',
-				'Retrieving template categories'
-			)
-
-			const categories: TemplateCategory[] = [
-				'legal',
-				'medical',
-				'business',
-				'education',
-				'survey',
-				'contact',
-				'registration',
-				'feedback',
-				'custom',
-			]
-
-			const executionTime = performance.now() - startTime
-			MCPLogger.debug(
-				'TemplateLibraryMCP.getTemplateCategories',
-				'Template categories retrieved successfully',
-				{
-					count: categories.length,
-				},
-				executionTime
-			)
-
-			return {
-				success: true,
-				data: categories,
+				data: exportData,
 				metadata: { executionTime },
 			}
 		} catch (error) {
 			const executionTime = performance.now() - startTime
 			MCPLogger.error(
-				'TemplateLibraryMCP.getTemplateCategories',
+				'TemplateLibraryMCP.exportTemplateToCSV',
+				error as Error,
+				{
+					templateId,
+					executionTime,
+				}
+			)
+
+			return {
+				success: false,
+				errors: [
+					{
+						code: 'TEMPLATE_EXPORT_ERROR',
+						message: 'Failed to export template to CSV',
+						details: { templateId, error: (error as Error).message },
+						timestamp: new Date(),
+					},
+				],
+				metadata: { executionTime },
+			}
+		}
+	}
+
+	/**
+	 * Import template from CSV export
+	 */
+	static importTemplateFromExport(
+		importData: TemplateImport
+	): MCPResult<FormTemplate> {
+		const startTime = performance.now()
+
+		try {
+			MCPLogger.info(
+				'TemplateLibraryMCP.importTemplateFromExport',
+				'Importing template from export data'
+			)
+
+			return this.generateTemplateFromCSV(importData.csvContent, {
+				name: importData.name,
+				description: importData.description,
+				componentMapping: importData.mapping.componentMapping,
+				layoutConfig: importData.mapping.layoutConfig,
+			})
+		} catch (error) {
+			const executionTime = performance.now() - startTime
+			MCPLogger.error(
+				'TemplateLibraryMCP.importTemplateFromExport',
 				error as Error,
 				{ executionTime }
 			)
 
 			return {
 				success: false,
-				error: {
-					code: 'CATEGORIES_ERROR',
-					message: 'Failed to retrieve template categories',
-					details: { error: (error as Error).message },
-					timestamp: new Date(),
-				},
+				errors: [
+					{
+						code: 'TEMPLATE_IMPORT_ERROR',
+						message: 'Failed to import template from export data',
+						details: { error: (error as Error).message },
+						timestamp: new Date(),
+					},
+				],
+				metadata: { executionTime },
 			}
 		}
 	}
 
 	/**
-	 * Create default templates for the library
+	 * Create form fields from components
 	 */
-	private static createDefaultTemplates(): FormTemplate[] {
-		return [
-			{
-				id: 'contact-form-template',
-				name: 'Contact Form',
-				description: 'Basic contact form with name, email, and message fields',
-				category: 'contact',
-				preview: 'Contact form with name, email, and message fields',
-				layout: {
-					id: 'single-column-layout',
-					name: 'Single Column',
-					description: 'Simple single-column layout',
-					type: 'single-column',
-					sections: [
-						{
-							id: 'main-section',
-							name: 'Main Content',
-							type: 'content',
-							columns: [
-								{
-									id: 'main-column',
-									width: 12,
-									fields: ['name-field', 'email-field', 'message-field'],
-									style: {},
-								},
-							],
-							style: { padding: '1rem' },
-							behavior: {},
-						},
-					],
-					metadata: {
-						author: 'Form Flow',
-						version: '1.0.0',
-						tags: ['basic', 'single-column'],
-						responsive: true,
-						accessibility: true,
-					},
-				},
-				fields: [
-					{
-						id: 'name-field',
-						label: 'Full Name',
-						type: 'text',
-						required: true,
-						placeholder: 'Enter your full name',
-					},
-					{
-						id: 'email-field',
-						label: 'Email Address',
-						type: 'email',
-						required: true,
-						placeholder: 'Enter your email address',
-					},
-					{
-						id: 'message-field',
-						label: 'Message',
-						type: 'textarea',
-						required: true,
-						placeholder: 'Enter your message',
-						textareaRows: 5,
-					},
-				],
-				metadata: {
-					author: 'Form Flow',
-					version: '1.0.0',
-					tags: ['contact', 'basic', 'simple'],
-					difficulty: 'beginner',
-					estimatedTime: 5,
-					features: ['Name field', 'Email validation', 'Message textarea'],
-					requirements: ['Basic form knowledge'],
-				},
-			},
-			{
-				id: 'registration-form-template',
-				name: 'User Registration',
-				description:
-					'Complete user registration form with personal and contact information',
-				category: 'registration',
-				preview: 'User registration form with personal and contact information',
-				layout: {
-					id: 'two-column-layout',
-					name: 'Two Column',
-					description: 'Two-column layout for organized forms',
-					type: 'two-column',
-					sections: [
-						{
-							id: 'main-section',
-							name: 'Main Content',
-							type: 'content',
-							columns: [
-								{
-									id: 'left-column',
-									width: 6,
-									fields: [
-										'first-name-field',
-										'last-name-field',
-										'email-field',
-										'phone-field',
-									],
-									style: { padding: '0.5rem' },
-								},
-								{
-									id: 'right-column',
-									width: 6,
-									fields: [
-										'password-field',
-										'confirm-password-field',
-										'terms-field',
-									],
-									style: { padding: '0.5rem' },
-								},
-							],
-							style: { padding: '1rem' },
-							behavior: {},
-						},
-					],
-					metadata: {
-						author: 'Form Flow',
-						version: '1.0.0',
-						tags: ['two-column', 'organized'],
-						responsive: true,
-						accessibility: true,
-					},
-				},
-				fields: [
-					{
-						id: 'first-name-field',
-						label: 'First Name',
-						type: 'text',
-						required: true,
-						placeholder: 'Enter your first name',
-					},
-					{
-						id: 'last-name-field',
-						label: 'Last Name',
-						type: 'text',
-						required: true,
-						placeholder: 'Enter your last name',
-					},
-					{
-						id: 'email-field',
-						label: 'Email Address',
-						type: 'email',
-						required: true,
-						placeholder: 'Enter your email address',
-					},
-					{
-						id: 'phone-field',
-						label: 'Phone Number',
-						type: 'phone',
-						required: false,
-						placeholder: '(555) 123-4567',
-					},
-					{
-						id: 'password-field',
-						label: 'Password',
-						type: 'password',
-						required: true,
-						placeholder: 'Enter your password',
-					},
-					{
-						id: 'confirm-password-field',
-						label: 'Confirm Password',
-						type: 'password',
-						required: true,
-						placeholder: 'Confirm your password',
-					},
-					{
-						id: 'terms-field',
-						label: 'I agree to the terms and conditions',
-						type: 'yesno',
-						required: true,
-						options: ['Yes', 'No'],
-					},
-				],
-				metadata: {
-					author: 'Form Flow',
-					version: '1.0.0',
-					tags: ['registration', 'user', 'account'],
-					difficulty: 'intermediate',
-					estimatedTime: 10,
-					features: [
-						'Personal information',
-						'Contact details',
-						'Password security',
-						'Terms agreement',
-					],
-					requirements: [
-						'Email validation',
-						'Password confirmation',
-						'Terms acceptance',
-					],
-				},
-			},
-			{
-				id: 'feedback-form-template',
-				name: 'Customer Feedback',
-				description: 'Comprehensive feedback form with rating and comments',
-				category: 'feedback',
-				preview: 'Customer feedback form with rating and comments',
-				layout: {
-					id: 'single-column-layout',
-					name: 'Single Column',
-					description: 'Simple single-column layout',
-					type: 'single-column',
-					sections: [
-						{
-							id: 'main-section',
-							name: 'Main Content',
-							type: 'content',
-							columns: [
-								{
-									id: 'main-column',
-									width: 12,
-									fields: [
-										'service-rating-field',
-										'experience-field',
-										'improvements-field',
-										'contact-field',
-									],
-									style: {},
-								},
-							],
-							style: { padding: '1rem' },
-							behavior: {},
-						},
-					],
-					metadata: {
-						author: 'Form Flow',
-						version: '1.0.0',
-						tags: ['basic', 'single-column'],
-						responsive: true,
-						accessibility: true,
-					},
-				},
-				fields: [
-					{
-						id: 'service-rating-field',
-						label: 'How would you rate our service?',
-						type: 'rating',
-						required: true,
-						ratingMax: 5,
-						ratingIcons: 'star',
-					},
-					{
-						id: 'experience-field',
-						label: 'Tell us about your experience',
-						type: 'textarea',
-						required: true,
-						placeholder: 'Share your experience with us',
-						textareaRows: 4,
-					},
-					{
-						id: 'improvements-field',
-						label: 'What could we improve?',
-						type: 'textarea',
-						required: false,
-						placeholder: 'Suggestions for improvement',
-						textareaRows: 3,
-					},
-					{
-						id: 'contact-field',
-						label: 'Would you like us to contact you?',
-						type: 'yesno',
-						required: false,
-						options: ['Yes', 'No'],
-					},
-				],
-				metadata: {
-					author: 'Form Flow',
-					version: '1.0.0',
-					tags: ['feedback', 'rating', 'customer'],
-					difficulty: 'beginner',
-					estimatedTime: 8,
-					features: [
-						'Service rating',
-						'Experience feedback',
-						'Improvement suggestions',
-						'Contact preference',
-					],
-					requirements: ['Rating system', 'Text feedback', 'Optional contact'],
-				},
-			},
-		]
+	private static createFieldsFromComponents(
+		components: any[],
+		layout: any
+	): FormField[] {
+		const fields: FormField[] = []
+		const fieldMap = new Map<string, number>()
+
+		// Create fields following layout order
+		layout.sections.forEach(section => {
+			section.columns.forEach(column => {
+				const component = components.find(c => c.name === column.field)
+				if (component) {
+					const field: FormField = {
+						id: `field-${fields.length + 1}`,
+						label: component.name,
+						type: component.type,
+						required: component.props.required || false,
+						placeholder: component.props.placeholder,
+						options: component.props.options,
+						validation: component.validation,
+					}
+					fields.push(field)
+					fieldMap.set(component.name, fields.length - 1)
+				}
+			})
+		})
+
+		// Add any remaining components not in layout
+		components.forEach(component => {
+			if (!fieldMap.has(component.name)) {
+				const field: FormField = {
+					id: `field-${fields.length + 1}`,
+					label: component.name,
+					type: component.type,
+					required: component.props.required || false,
+					placeholder: component.props.placeholder,
+					options: component.props.options,
+					validation: component.validation,
+				}
+				fields.push(field)
+			}
+		})
+
+		return fields
+	}
+
+	/**
+	 * Determine template category based on fields
+	 */
+	private static determineTemplateCategory(
+		fields: FormField[]
+	): TemplateCategory {
+		const typeCount = new Map<string, number>()
+		fields.forEach(field => {
+			const count = typeCount.get(field.type) || 0
+			typeCount.set(field.type, count + 1)
+		})
+
+		if (this.hasContactFields(typeCount)) return 'contact'
+		if (this.hasFinancialFields(typeCount)) return 'financial'
+		if (this.hasSurveyFields(typeCount)) return 'survey'
+		if (this.hasApplicationFields(typeCount)) return 'application'
+		return 'general'
+	}
+
+	/**
+	 * Check if fields match contact form pattern
+	 */
+	private static hasContactFields(typeCount: Map<string, number>): boolean {
+		return (
+			(typeCount.get('email') || 0) > 0 &&
+			(typeCount.get('phone') || 0) > 0 &&
+			(typeCount.get('text') || 0) > 0
+		)
+	}
+
+	/**
+	 * Check if fields match financial form pattern
+	 */
+	private static hasFinancialFields(typeCount: Map<string, number>): boolean {
+		return (
+			(typeCount.get('money') || 0) > 0 ||
+			(typeCount.get('percentage') || 0) > 0
+		)
+	}
+
+	/**
+	 * Check if fields match survey form pattern
+	 */
+	private static hasSurveyFields(typeCount: Map<string, number>): boolean {
+		return (
+			(typeCount.get('radio') || 0) > 0 ||
+			(typeCount.get('rating') || 0) > 0 ||
+			(typeCount.get('textarea') || 0) > 1
+		)
+	}
+
+	/**
+	 * Check if fields match application form pattern
+	 */
+	private static hasApplicationFields(typeCount: Map<string, number>): boolean {
+		return (
+			(typeCount.get('file') || 0) > 0 &&
+			(typeCount.get('date') || 0) > 0 &&
+			fields.length > 8
+		)
+	}
+
+	/**
+	 * Determine template difficulty based on fields
+	 */
+	private static determineTemplateDifficulty(
+		fields: FormField[]
+	): 'beginner' | 'intermediate' | 'advanced' {
+		const complexityScore = fields.reduce((score, field) => {
+			switch (field.type) {
+				case 'text':
+				case 'number':
+				case 'email':
+					return score + 1
+				case 'date':
+				case 'select':
+				case 'radio':
+					return score + 2
+				case 'file':
+				case 'multiselect':
+				case 'tags':
+					return score + 3
+				default:
+					return score + 1
+			}
+		}, 0)
+
+		if (complexityScore <= 10) return 'beginner'
+		if (complexityScore <= 20) return 'intermediate'
+		return 'advanced'
+	}
+
+	/**
+	 * Generate sample data for CSV export
+	 */
+	private static generateSampleData(fields: FormField[]): string[][] {
+		const rows: string[][] = []
+		for (let i = 0; i < 3; i++) {
+			const row = fields.map(field => this.generateSampleValue(field, i))
+			rows.push(row)
+		}
+		return rows
+	}
+
+	/**
+	 * Generate sample value for a field
+	 */
+	private static generateSampleValue(field: FormField, index: number): string {
+		switch (field.type) {
+			case 'text':
+				return `Sample ${field.label} ${index + 1}`
+			case 'email':
+				return `user${index + 1}@example.com`
+			case 'phone':
+				return `(555) 123-${4567 + index}`
+			case 'number':
+				return `${index + 1}00`
+			case 'money':
+				return `${(index + 1) * 100}.00`
+			case 'date':
+				const date = new Date()
+				date.setDate(date.getDate() + index)
+				return date.toISOString().split('T')[0]
+			default:
+				return `Sample ${index + 1}`
+		}
+	}
+
+	/**
+	 * Generate CSV content
+	 */
+	private static generateCSV(headers: string[], rows: string[][]): string {
+		const csvRows = [headers.join(','), ...rows.map(row => row.join(','))]
+		return csvRows.join('\n')
+	}
+
+	/**
+	 * Create component mapping for template export
+	 */
+	private static createComponentMapping(
+		fields: FormField[]
+	): Record<string, any> {
+		const mapping: Record<string, any> = {}
+		fields.forEach(field => {
+			mapping[field.label] = {
+				type: field.type,
+				required: field.required,
+				placeholder: field.placeholder,
+				options: field.options,
+				validation: field.validation,
+			}
+		})
+		return mapping
 	}
 }

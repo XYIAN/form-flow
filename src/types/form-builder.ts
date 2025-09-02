@@ -1,6 +1,6 @@
 /**
  * Form Builder Types
- * 
+ *
  * Types and interfaces for the form builder components
  */
 

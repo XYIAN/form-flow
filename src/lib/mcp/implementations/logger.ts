@@ -37,32 +37,78 @@ export class MCPLogger {
 		const level = this.getLogLevel(result)
 		if (!this.shouldLog(level)) return
 
-		console.group(`🔧 MCP: ${operation}`)
+		// Enhanced console logging with better formatting
+		const timestamp = new Date().toISOString()
+		const status = result.success ? '✅' : '❌'
+		
+		console.group(`🔧 MCP: ${operation} ${status}`)
+		console.log(`🕐 Timestamp: ${timestamp}`)
+		console.log(`📊 Status: ${result.success ? 'SUCCESS' : 'FAILED'}`)
 
-		// Input data
-		console.log('📥 Input:', this.sanitizeForLog(input))
+		// Input data with better formatting
+		console.group('📥 Input Data')
+		console.log(this.sanitizeForLog(input))
+		console.groupEnd()
 
-		// Result data
-		console.log('📤 Result:', this.sanitizeForLog(result))
+		// Result data with better formatting
+		console.group('📤 Result Data')
+		console.log('Success:', result.success)
+		if (result.data) {
+			console.log('Data:', this.sanitizeForLog(result.data))
+		}
+		console.groupEnd()
 
 		// Performance metrics
 		if (
 			this.config.enablePerformanceTracking &&
 			result.metadata?.executionTime
 		) {
-			console.log(
-				`⏱️ Execution time: ${result.metadata.executionTime.toFixed(2)}ms`
-			)
+			console.group('⏱️ Performance Metrics')
+			console.log(`Execution time: ${result.metadata.executionTime.toFixed(2)}ms`)
+			console.log(`Operation: ${result.metadata.operation}`)
+			console.log(`Timestamp: ${result.metadata.timestamp}`)
+			console.groupEnd()
 		}
 
-		// Errors
+		// Errors with detailed information
 		if (result.errors?.length) {
-			console.error('❌ Errors:', result.errors)
+			console.group('❌ Errors')
+			result.errors.forEach((error, index) => {
+				console.error(`Error ${index + 1}:`, {
+					code: error.code,
+					message: error.message,
+					field: error.field,
+					timestamp: error.timestamp,
+					details: error.details
+				})
+			})
+			console.groupEnd()
 		}
 
-		// Warnings
+		// Warnings with detailed information
 		if (result.warnings?.length) {
-			console.warn('⚠️ Warnings:', result.warnings)
+			console.group('⚠️ Warnings')
+			result.warnings.forEach((warning, index) => {
+				console.warn(`Warning ${index + 1}:`, {
+					code: warning.code,
+					message: warning.message,
+					field: warning.field,
+					timestamp: warning.timestamp,
+					details: warning.details
+				})
+			})
+			console.groupEnd()
+		}
+
+		// MCP-specific metadata
+		if (result.metadata) {
+			console.group('🔍 MCP Metadata')
+			console.log('Operation:', result.metadata.operation)
+			console.log('Timestamp:', result.metadata.timestamp)
+			if (result.metadata.executionTime) {
+				console.log('Execution Time:', `${result.metadata.executionTime.toFixed(2)}ms`)
+			}
+			console.groupEnd()
 		}
 
 		console.groupEnd()

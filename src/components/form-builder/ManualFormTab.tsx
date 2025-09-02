@@ -1,6 +1,6 @@
 /**
  * Manual Form Builder Tab Component
- * 
+ *
  * Handles manual form field creation and editing
  */
 
@@ -44,7 +44,7 @@ export default function ManualFormTab({
 	onUpdateField,
 	onDeleteField,
 	onSaveForm,
-	isLoading
+	isLoading,
 }: ManualFormTabProps) {
 	const [editingField, setEditingField] = useState<FormField | null>(null)
 	const [fieldLabel, setFieldLabel] = useState('')
@@ -78,7 +78,7 @@ export default function ManualFormTab({
 			type: fieldType,
 			required: fieldRequired,
 			placeholder: fieldPlaceholder.trim() || undefined,
-			options: options.length > 0 ? options : undefined
+			options: options.length > 0 ? options : undefined,
 		}
 
 		onAddField(newField)
@@ -92,7 +92,7 @@ export default function ManualFormTab({
 		setFieldRequired(field.required)
 		setFieldPlaceholder(field.placeholder || '')
 		setFieldOptions(field.options ? field.options.join(', ') : '')
-		
+
 		// Find category for field type
 		const fieldTypeData = FIELD_TYPES.find(ft => ft.value === field.type)
 		setSelectedCategory(fieldTypeData?.category || 'basic')
@@ -112,14 +112,16 @@ export default function ManualFormTab({
 			type: fieldType,
 			required: fieldRequired,
 			placeholder: fieldPlaceholder.trim() || undefined,
-			options: options.length > 0 ? options : undefined
+			options: options.length > 0 ? options : undefined,
 		}
 
 		onUpdateField(editingField.id, updatedField)
 		resetFieldForm()
 	}
 
-	const filteredFieldTypes = FIELD_TYPES.filter(ft => ft.category === selectedCategory)
+	const filteredFieldTypes = FIELD_TYPES.filter(
+		ft => ft.category === selectedCategory
+	)
 
 	return (
 		<div className='space-y-4'>
@@ -132,7 +134,7 @@ export default function ManualFormTab({
 						</label>
 						<InputText
 							value={title}
-							onChange={(e) => setTitle(e.target.value)}
+							onChange={e => setTitle(e.target.value)}
 							placeholder='Enter form title...'
 							className='w-full'
 						/>
@@ -143,7 +145,7 @@ export default function ManualFormTab({
 						</label>
 						<InputTextarea
 							value={description}
-							onChange={(e) => setDescription(e.target.value)}
+							onChange={e => setDescription(e.target.value)}
 							placeholder='Enter form description...'
 							rows={3}
 							className='w-full'
@@ -164,9 +166,9 @@ export default function ManualFormTab({
 							value={selectedCategory}
 							options={FIELD_CATEGORIES.map(cat => ({
 								label: cat.name,
-								value: cat.id
+								value: cat.id,
 							}))}
-							onChange={(e) => setSelectedCategory(e.value)}
+							onChange={e => setSelectedCategory(e.value)}
 							placeholder='Select category'
 							className='w-full'
 						/>
@@ -181,9 +183,9 @@ export default function ManualFormTab({
 							value={fieldType}
 							options={filteredFieldTypes.map(ft => ({
 								label: ft.label,
-								value: ft.value
+								value: ft.value,
 							}))}
-							onChange={(e) => setFieldType(e.value)}
+							onChange={e => setFieldType(e.value)}
 							placeholder='Select field type'
 							className='w-full'
 						/>
@@ -196,7 +198,7 @@ export default function ManualFormTab({
 						</label>
 						<InputText
 							value={fieldLabel}
-							onChange={(e) => setFieldLabel(e.target.value)}
+							onChange={e => setFieldLabel(e.target.value)}
 							placeholder='Enter field label...'
 							className='w-full'
 						/>
@@ -209,21 +211,23 @@ export default function ManualFormTab({
 						</label>
 						<InputText
 							value={fieldPlaceholder}
-							onChange={(e) => setFieldPlaceholder(e.target.value)}
+							onChange={e => setFieldPlaceholder(e.target.value)}
 							placeholder='Enter placeholder text...'
 							className='w-full'
 						/>
 					</div>
 
 					{/* Field Options (for select, radio, checkbox fields) */}
-					{['select', 'radio', 'checkbox', 'multiselect'].includes(fieldType) && (
+					{['select', 'radio', 'checkbox', 'multiselect'].includes(
+						fieldType
+					) && (
 						<div>
 							<label className='block text-sm font-medium text-white mb-2'>
 								Options (comma-separated)
 							</label>
 							<InputTextarea
 								value={fieldOptions}
-								onChange={(e) => setFieldOptions(e.target.value)}
+								onChange={e => setFieldOptions(e.target.value)}
 								placeholder='Option 1, Option 2, Option 3...'
 								rows={3}
 								className='w-full'
@@ -236,7 +240,7 @@ export default function ManualFormTab({
 						<Checkbox
 							inputId='required'
 							checked={fieldRequired}
-							onChange={(e) => setFieldRequired(e.checked || false)}
+							onChange={e => setFieldRequired(e.checked || false)}
 						/>
 						<label htmlFor='required' className='text-white'>
 							Required field

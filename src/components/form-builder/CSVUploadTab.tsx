@@ -1,6 +1,6 @@
 /**
  * CSV Upload Tab Component
- * 
+ *
  * Handles CSV file upload, processing, and template downloads
  */
 
@@ -49,7 +49,7 @@ export default function CSVUploadTab({
 	onError,
 	onMcpStatusChange,
 	onMcpExecutionTime,
-	onMcpError
+	onMcpError,
 }: CSVUploadTabProps) {
 	const [csvAnalysis, setCsvAnalysis] = useState<unknown>(null)
 	const [selectedTemplate, setSelectedTemplate] = useState<string>('contact')
@@ -87,7 +87,7 @@ export default function CSVUploadTab({
 			const generationResult = FormGeneratorMCP.generateFormFromCSV(content, {
 				formTitle: csvTitle || 'Generated Form',
 				formDescription: csvDescription || 'Form generated from CSV data',
-				includePreview: true
+				includePreview: true,
 			})
 
 			if (generationResult.success && generationResult.data) {
@@ -115,10 +115,12 @@ export default function CSVUploadTab({
 		}
 	}
 
-	const templateOptions = Object.entries(CSV_TEMPLATES).map(([key, template]) => ({
-		label: template.name,
-		value: key
-	}))
+	const templateOptions = Object.entries(CSV_TEMPLATES).map(
+		([key, template]) => ({
+			label: template.name,
+			value: key,
+		})
+	)
 
 	const uploadButtonItems = [
 		{
@@ -127,7 +129,7 @@ export default function CSVUploadTab({
 			command: () => {
 				setSelectedTemplate('contact')
 				handleDownloadTemplate()
-			}
+			},
 		},
 		{
 			label: 'Download Registration Template',
@@ -135,7 +137,7 @@ export default function CSVUploadTab({
 			command: () => {
 				setSelectedTemplate('registration')
 				handleDownloadTemplate()
-			}
+			},
 		},
 		{
 			label: 'Download Survey Template',
@@ -143,7 +145,7 @@ export default function CSVUploadTab({
 			command: () => {
 				setSelectedTemplate('survey')
 				handleDownloadTemplate()
-			}
+			},
 		},
 		{
 			label: 'Download Application Template',
@@ -151,7 +153,7 @@ export default function CSVUploadTab({
 			command: () => {
 				setSelectedTemplate('application')
 				handleDownloadTemplate()
-			}
+			},
 		},
 		{
 			label: 'Download Feedback Template',
@@ -159,8 +161,8 @@ export default function CSVUploadTab({
 			command: () => {
 				setSelectedTemplate('feedback')
 				handleDownloadTemplate()
-			}
-		}
+			},
+		},
 	]
 
 	return (
@@ -175,7 +177,7 @@ export default function CSVUploadTab({
 						<Dropdown
 							value={selectedTemplate}
 							options={templateOptions}
-							onChange={(e) => setSelectedTemplate(e.value)}
+							onChange={e => setSelectedTemplate(e.value)}
 							placeholder='Select a template'
 							className='w-full'
 						/>
@@ -228,7 +230,7 @@ export default function CSVUploadTab({
 							</label>
 							<InputText
 								value={csvTitle}
-								onChange={(e) => setCsvTitle(e.target.value)}
+								onChange={e => setCsvTitle(e.target.value)}
 								placeholder='Enter form title...'
 								className='w-full'
 							/>
@@ -239,7 +241,7 @@ export default function CSVUploadTab({
 							</label>
 							<InputTextarea
 								value={csvDescription}
-								onChange={(e) => setCsvDescription(e.target.value)}
+								onChange={e => setCsvDescription(e.target.value)}
 								placeholder='Enter form description...'
 								rows={3}
 								className='w-full'
@@ -316,24 +318,35 @@ export default function CSVUploadTab({
 									<div className='text-white'>
 										Completeness:{' '}
 										{Math.round(
-											(csvAnalysis as { quality: { completeness: number } }).quality.completeness * 100
+											(csvAnalysis as { quality: { completeness: number } })
+												.quality.completeness * 100
 										)}
 										%
 									</div>
 									<div className='text-white'>
 										Consistency:{' '}
 										{Math.round(
-											(csvAnalysis as { quality: { consistency: number } }).quality.consistency * 100
+											(csvAnalysis as { quality: { consistency: number } })
+												.quality.consistency * 100
 										)}
 										%
 									</div>
 								</div>
 								<div className='p-3 bg-gray-800 rounded'>
-									<div className='text-sm text-gray-300 mb-1'>Field Types Detected</div>
+									<div className='text-sm text-gray-300 mb-1'>
+										Field Types Detected
+									</div>
 									<div className='text-white'>
 										{Object.entries(
-											(csvAnalysis as { dataTypes: Array<{ detectedType: string }> }).dataTypes.reduce(
-												(acc: Record<string, number>, dt: { detectedType: string }) => {
+											(
+												csvAnalysis as {
+													dataTypes: Array<{ detectedType: string }>
+												}
+											).dataTypes.reduce(
+												(
+													acc: Record<string, number>,
+													dt: { detectedType: string }
+												) => {
 													acc[dt.detectedType] = (acc[dt.detectedType] || 0) + 1
 													return acc
 												},
@@ -353,7 +366,9 @@ export default function CSVUploadTab({
 					{/* Create Form Button */}
 					<div className='flex justify-end'>
 						<Button
-							label={csvProcessing ? 'Processing CSV...' : 'Create Form from CSV'}
+							label={
+								csvProcessing ? 'Processing CSV...' : 'Create Form from CSV'
+							}
 							icon={csvProcessing ? 'pi pi-spin pi-spinner' : 'pi pi-save'}
 							onClick={onCreateFromCsv}
 							className='p-button-primary'

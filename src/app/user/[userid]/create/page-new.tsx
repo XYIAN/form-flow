@@ -12,7 +12,7 @@ import { Message } from 'primereact/message'
 import { useAuth } from '@/context/AuthContext'
 import { useForms } from '@/context/FormContext'
 import { FormField } from '@/types'
-// import { FieldMCP, MCPLogger } from '@/lib/mcp' // Unused for now
+import { FieldMCP, MCPLogger } from '@/lib/mcp'
 import Navigation from '@/components/Navigation'
 import FormBuilderTabs from '@/components/form-builder/FormBuilderTabs'
 import MCPStatusIndicator from '@/components/MCPStatusIndicator'
@@ -190,7 +190,12 @@ export default function CreateForm({ params }: CreateFormProps) {
 						{/* Main Form Builder */}
 						<div className='col-12 lg:col-8'>
 							{error && (
-								<Message severity='error' text={error} className='mb-4' />
+								<Message
+									severity='error'
+									text={error}
+									className='mb-4'
+									onClose={() => setError('')}
+								/>
 							)}
 
 							<FormBuilderTabs
