@@ -16,12 +16,16 @@ import {
 
 export class MCPLogger {
 	private static config: MCPConfig = DEFAULT_MCP_CONFIG
+	private static onLogCallback?: (level: string, operation: string, message: string, data?: any, executionTime?: number) => void
 
 	/**
 	 * Configure the logger
 	 */
-	static configure(config: Partial<MCPConfig>): void {
+	static configure(config: Partial<MCPConfig> & { onLog?: (level: string, operation: string, message: string, data?: any, executionTime?: number) => void }): void {
 		this.config = { ...this.config, ...config }
+		if (config.onLog) {
+			this.onLogCallback = config.onLog
+		}
 	}
 
 	/**
@@ -62,6 +66,12 @@ export class MCPLogger {
 		}
 
 		console.groupEnd()
+
+		// Call external callback if configured
+		if (this.onLogCallback) {
+			const message = result.success ? 'Operation completed successfully' : 'Operation failed'
+			this.onLogCallback(level, operation, message, result, result.metadata?.executionTime)
+		}
 	}
 
 	/**
@@ -75,6 +85,12 @@ export class MCPLogger {
 		if (error instanceof Error) {
 			console.error('Stack trace:', error.stack)
 		}
+
+		// Call external callback if configured
+		if (this.onLogCallback) {
+			const message = error instanceof Error ? error.message : error.message
+			this.onLogCallback('error', operation, message, error)
+		}
 	}
 
 	/**
@@ -84,6 +100,11 @@ export class MCPLogger {
 		if (!this.shouldLog('warn')) return
 
 		console.warn(`⚠️ MCP Warning in ${operation}: ${message}`, data)
+
+		// Call external callback if configured
+		if (this.onLogCallback) {
+			this.onLogCallback('warn', operation, message, data)
+		}
 	}
 
 	/**
@@ -93,6 +114,11 @@ export class MCPLogger {
 		if (!this.shouldLog('debug')) return
 
 		console.debug(`🐛 MCP Debug in ${operation}: ${message}`, data)
+
+		// Call external callback if configured
+		if (this.onLogCallback) {
+			this.onLogCallback('debug', operation, message, data)
+		}
 	}
 
 	/**

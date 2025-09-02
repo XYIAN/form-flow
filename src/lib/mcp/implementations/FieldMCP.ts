@@ -27,15 +27,18 @@ import { FileUpload } from 'primereact/fileupload'
 export class FieldMCP {
 	/**
 	 * Renders a field component based on its type
+	 * Returns the component class and props for React Hook Form integration
 	 */
-	static render(props: FieldRenderProps): MCPResult<React.ReactNode> {
+	static render(
+		props: FieldRenderProps
+	): MCPResult<{ Component: any; componentProps: any }> {
 		const tracker = MCPLogger.createPerformanceTracker('render')
 
 		try {
 			// Validate field
 			const fieldValidation = FieldMCP.validateField(props.field)
 			if (!fieldValidation.success) {
-				const result: MCPResult<React.ReactNode> = {
+				const result: MCPResult<{ Component: any; componentProps: any }> = {
 					success: false,
 					errors: fieldValidation.errors,
 					metadata: {
@@ -57,12 +60,9 @@ export class FieldMCP {
 				props.errors
 			)
 
-			// Render component
-			const component = React.createElement(Component, componentProps)
-
-			const result: MCPResult<React.ReactNode> = {
+			const result: MCPResult<{ Component: any; componentProps: any }> = {
 				success: true,
-				data: component,
+				data: { Component, componentProps },
 				metadata: {
 					executionTime: tracker.end(),
 					operation: 'render',
@@ -81,7 +81,7 @@ export class FieldMCP {
 				timestamp: new Date(),
 			}
 
-			const result: MCPResult<React.ReactNode> = {
+			const result: MCPResult<{ Component: any; componentProps: any }> = {
 				success: false,
 				errors: [mcpError],
 				metadata: {
@@ -132,20 +132,58 @@ export class FieldMCP {
 
 		// Validate field type
 		const validTypes: FieldType[] = [
+			// Basic Input Types
 			'text',
 			'email',
+			'password',
 			'number',
+			'url',
+			'search',
+			// Date & Time Types
 			'date',
+			'datetime',
+			'time',
+			'month',
+			'week',
+			'year',
+			// Text Area Types
 			'textarea',
+			'rich-text',
+			'markdown',
+			// Selection Types
 			'select',
+			'multiselect',
 			'checkbox',
 			'radio',
+			'yesno',
+			'toggle',
+			// Financial Types
 			'money',
+			'percentage',
+			'currency',
+			// Contact Types
 			'phone',
 			'address',
-			'yesno',
+			'country',
+			'state',
+			'zipcode',
+			// File & Media Types
 			'file',
+			'image',
 			'signature',
+			'audio',
+			'video',
+			// Rating & Scale Types
+			'rating',
+			'slider',
+			'range',
+			'likert',
+			// Specialized Types
+			'color',
+			'tags',
+			'autocomplete',
+			'location',
+			'matrix',
 		]
 
 		if (field.type && !validTypes.includes(field.type)) {
@@ -257,20 +295,66 @@ export class FieldMCP {
 	 */
 	static getComponent(fieldType: FieldType): React.ComponentType<any> {
 		const componentMap: Record<FieldType, React.ComponentType<any>> = {
+			// Basic Input Types
 			text: InputText,
 			email: InputText,
+			password: InputText,
 			number: InputText,
-			money: InputMask,
-			phone: InputMask,
+			url: InputText,
+			search: InputText,
+
+			// Date & Time Types
 			date: Calendar,
+			datetime: Calendar,
+			time: Calendar,
+			month: Calendar,
+			week: Calendar,
+			year: Calendar,
+
+			// Text Area Types
 			textarea: InputTextarea,
-			address: InputText,
+			'rich-text': InputTextarea,
+			markdown: InputTextarea,
+
+			// Selection Types
 			select: Dropdown,
+			multiselect: Dropdown, // Will be handled with multiple prop
 			checkbox: Checkbox,
 			radio: RadioButton,
 			yesno: RadioButton,
+			toggle: RadioButton, // Will be handled with toggle styling
+
+			// Financial Types
+			money: InputMask,
+			percentage: InputText,
+			currency: InputMask,
+
+			// Contact Types
+			phone: InputMask,
+			address: InputText,
+			country: Dropdown,
+			state: Dropdown,
+			zipcode: InputText,
+
+			// File & Media Types
 			file: FileUpload,
+			image: FileUpload,
 			signature: InputText,
+			audio: FileUpload,
+			video: FileUpload,
+
+			// Rating & Scale Types
+			rating: InputText, // Will be handled with custom component
+			slider: InputText, // Will be handled with custom component
+			range: InputText, // Will be handled with custom component
+			likert: RadioButton, // Will be handled with custom styling
+
+			// Specialized Types
+			color: InputText, // Will be handled with color picker
+			tags: InputText, // Will be handled with chips component
+			autocomplete: InputText, // Will be handled with autocomplete
+			location: InputText, // Will be handled with location picker
+			matrix: InputText, // Will be handled with matrix component
 		}
 
 		return componentMap[fieldType] || InputText
@@ -298,7 +382,10 @@ export class FieldMCP {
 		switch (field.type) {
 			case 'text':
 			case 'email':
+			case 'password':
 			case 'number':
+			case 'url':
+			case 'search':
 				return {
 					...baseProps,
 					type: field.type,

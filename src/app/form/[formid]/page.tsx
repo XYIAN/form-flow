@@ -121,7 +121,7 @@ export default function FormViewPage({ params }: FormViewPageProps) {
 				control={control}
 				rules={FieldMCP.getValidationRules(field)}
 				render={({ field: { onChange, value, onBlur } }) => {
-					// Use MCP to render field with React Hook Form integration
+					// Use MCP to get component and props
 					const result = FieldMCP.render({
 						field,
 						control: {
@@ -146,7 +146,9 @@ export default function FormViewPage({ params }: FormViewPageProps) {
 						)
 					}
 
-					return <div>{result.data}</div>
+					// Render the component with the props from MCP
+					const { Component, componentProps } = result.data!
+					return <Component {...componentProps} />
 				}}
 			/>
 		)
