@@ -22,17 +22,17 @@ export interface IFieldProtocol {
 	/**
 	 * Validates field value against field configuration
 	 */
-	validateFieldValue(field: FormField, value: any): MCPResult<boolean>;
+	validateFieldValue(field: FormField, value: unknown): MCPResult<boolean>;
 
 	/**
 	 * Gets the appropriate component for a field type
 	 */
-	getComponent(fieldType: FieldType): React.ComponentType<any>;
+	getComponent(fieldType: FieldType): React.ComponentType<unknown>;
 
 	/**
 	 * Gets component props for a field type
 	 */
-	getComponentProps(field: FormField, control: any, errors: any): Record<string, any>;
+	getComponentProps(field: FormField, control: unknown, errors: unknown): Record<string, unknown>;
 
 	/**
 	 * Sanitizes field data for storage
@@ -47,15 +47,15 @@ export interface IFieldProtocol {
 	/**
 	 * Gets validation rules for a field type
 	 */
-	getValidationRules(field: FormField): Record<string, any>;
+	getValidationRules(field: FormField): Record<string, unknown>;
 
 	/**
 	 * Transforms field value for display
 	 */
-	transformValueForDisplay(field: FormField, value: any): string;
+	transformValueForDisplay(field: FormField, value: unknown): string;
 
 	/**
 	 * Transforms field value for storage
 	 */
-	transformValueForStorage(field: FormField, value: any): any;
+	transformValueForStorage(field: FormField, value: unknown): unknown;
 }

@@ -5,6 +5,8 @@
  * and error reporting for all MCP operations.
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { MCPResult, MCPError, MCPConfig, DEFAULT_MCP_CONFIG } from '../protocols/types';
 
 export class MCPLogger {

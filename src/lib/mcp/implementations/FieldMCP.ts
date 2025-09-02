@@ -5,6 +5,8 @@
  * and component management using PrimeReact components.
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import React from 'react';
 import { IFieldProtocol } from '../protocols/IFieldProtocol';
 import { MCPResult, FieldRenderProps, MCPError } from '../protocols/types';

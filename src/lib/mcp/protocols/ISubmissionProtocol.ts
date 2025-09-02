@@ -17,32 +17,32 @@ export interface ISubmissionProtocol {
 	/**
 	 * Validates individual field submission
 	 */
-	validateFieldSubmission(field: FormField, value: any): MCPResult<boolean>;
+	validateFieldSubmission(field: FormField, value: unknown): MCPResult<boolean>;
 
 	/**
 	 * Processes form submission data
 	 */
-	processSubmission(form: Form, data: Record<string, any>): MCPResult<FormSubmission>;
+	processSubmission(form: Form, data: Record<string, unknown>): MCPResult<FormSubmission>;
 
 	/**
 	 * Sanitizes submission data
 	 */
-	sanitizeSubmissionData(data: Record<string, any>): Record<string, any>;
+	sanitizeSubmissionData(data: Record<string, unknown>): Record<string, unknown>;
 
 	/**
 	 * Transforms submission data for storage
 	 */
-	transformSubmissionData(form: Form, data: Record<string, any>): Record<string, any>;
+	transformSubmissionData(form: Form, data: Record<string, unknown>): Record<string, unknown>;
 
 	/**
 	 * Validates required fields
 	 */
-	validateRequiredFields(form: Form, data: Record<string, any>): MCPResult<boolean>;
+	validateRequiredFields(form: Form, data: Record<string, unknown>): MCPResult<boolean>;
 
 	/**
 	 * Validates field types and formats
 	 */
-	validateFieldTypes(form: Form, data: Record<string, any>): MCPResult<boolean>;
+	validateFieldTypes(form: Form, data: Record<string, unknown>): MCPResult<boolean>;
 
 	/**
 	 * Generates submission metadata

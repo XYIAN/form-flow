@@ -25,17 +25,20 @@ A full-stack web application for creating, managing, and sharing custom forms fo
 ## 📦 Installation
 
 1. Clone the repository:
+
 ```bash
 git clone <repository-url>
 cd form-flow
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Run the development server:
+
 ```bash
 npm run dev
 ```
@@ -73,6 +76,7 @@ src/
 Form Flow v1.1.0 implements the **Model Context Protocol (MCP)** pattern for clean architecture and separation of concerns:
 
 ### MCP Layer Structure
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Form Flow Application                    │
@@ -101,6 +105,7 @@ Form Flow v1.1.0 implements the **Model Context Protocol (MCP)** pattern for cle
 ```
 
 ### Key Benefits
+
 - **Separation of Concerns**: Business logic separated from UI components
 - **Type Safety**: Complete TypeScript coverage with compile-time checking
 - **Error Handling**: Structured error objects with rich context
@@ -109,6 +114,7 @@ Form Flow v1.1.0 implements the **Model Context Protocol (MCP)** pattern for cle
 - **Maintainability**: Centralized business logic with consistent patterns
 
 ### MCP Components
+
 - **FormMCP**: Handles form creation, validation, and management
 - **FieldMCP**: Manages field rendering with PrimeReact components
 - **SubmissionMCP**: Processes form submissions with validation
@@ -119,15 +125,18 @@ Form Flow v1.1.0 implements the **Model Context Protocol (MCP)** pattern for cle
 The application uses a simple email-based authentication system:
 
 ### Demo Accounts
+
 - **Email**: `admin@lawfirm.com` | **Company**: Smith & Associates Law Firm
 - **Email**: `manager@classaction.com` | **Company**: Class Action Management LLC
 
 ### New Users
+
 New users can register by entering their email and company name. The system will create a new account automatically.
 
 ## 📝 Form Creation
 
 ### Manual Creation
+
 1. Navigate to the Create Form page
 2. Enter form title and description
 3. Add fields with different types:
@@ -143,6 +152,7 @@ New users can register by entering their email and company name. The system will
 5. Save the form
 
 ### CSV Upload
+
 1. Upload a CSV file with headers
 2. The first row will be used as field labels
 3. Enter form title and description

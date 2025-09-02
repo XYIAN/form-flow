@@ -4,17 +4,9 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm, Controller } from 'react-hook-form'
 import { Card } from 'primereact/card'
-import { InputText } from 'primereact/inputtext'
-import { InputTextarea } from 'primereact/inputtextarea'
-import { Calendar } from 'primereact/calendar'
-import { Dropdown } from 'primereact/dropdown'
-import { Checkbox } from 'primereact/checkbox'
-import { RadioButton } from 'primereact/radiobutton'
 import { Button } from 'primereact/button'
 import { Dialog } from 'primereact/dialog'
 import { Message } from 'primereact/message'
-import { InputMask } from 'primereact/inputmask'
-import { FileUpload } from 'primereact/fileupload'
 import { useForms } from '@/context/FormContext'
 import { Form, FormField } from '@/types'
 import { FieldMCP, SubmissionMCP, MCPLogger } from '@/lib/mcp'
@@ -31,20 +23,24 @@ export default function FormViewPage({ params }: FormViewPageProps) {
 	const [form, setForm] = useState<Form | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
 	const [showSubmissionModal, setShowSubmissionModal] = useState(false)
-	const [submittedData, setSubmittedData] = useState<Record<string, string | number | boolean | string[] | Date>>({})
+	const [submittedData, setSubmittedData] = useState<
+		Record<string, string | number | boolean | string[] | Date>
+	>({})
 	const [error, setError] = useState('')
-	const [resolvedParams, setResolvedParams] = useState<{ formid: string } | null>(null)
+	const [resolvedParams, setResolvedParams] = useState<{
+		formid: string
+	} | null>(null)
 
 	const {
 		control,
 		handleSubmit,
 		formState: { errors },
-		reset
+		reset,
 	} = useForm()
 
 	// Resolve params promise
 	useEffect(() => {
-		params.then((resolved) => {
+		params.then(resolved => {
 			setResolvedParams(resolved)
 		})
 	}, [params])
@@ -64,20 +60,26 @@ export default function FormViewPage({ params }: FormViewPageProps) {
 		setIsLoading(false)
 	}, [resolvedParams, getFormById])
 
-	const onSubmit = (data: Record<string, string | number | boolean | string[] | Date>) => {
+	const onSubmit = (
+		data: Record<string, string | number | boolean | string[] | Date>
+	) => {
 		if (!form) return
 
 		// Use MCP to validate and process submission
 		const validationContext = {
 			form,
 			submissionData: data,
-			fieldErrors: errors
+			fieldErrors: errors,
 		}
 
 		const validationResult = SubmissionMCP.validateSubmission(validationContext)
-		
+
 		if (!validationResult.success) {
-			MCPLogger.error('onSubmit', validationResult.errors?.[0] || new Error('Submission validation failed'))
+			MCPLogger.error(
+				'onSubmit',
+				validationResult.errors?.[0] ||
+					new Error('Submission validation failed')
+			)
 			setError('Form submission failed. Please check your inputs.')
 			return
 		}
@@ -89,16 +91,22 @@ export default function FormViewPage({ params }: FormViewPageProps) {
 
 		// Process submission using MCP
 		const processResult = SubmissionMCP.processSubmission(form, data)
-		
+
 		if (!processResult.success) {
-			MCPLogger.error('onSubmit', processResult.errors?.[0] || new Error('Submission processing failed'))
+			MCPLogger.error(
+				'onSubmit',
+				processResult.errors?.[0] || new Error('Submission processing failed')
+			)
 			setError('Failed to process form submission.')
 			return
 		}
 
 		// Format data for display using MCP
-		const formattedData = SubmissionMCP.formatSubmissionForDisplay(form, processResult.data!)
-		
+		const formattedData = SubmissionMCP.formatSubmissionForDisplay(
+			form,
+			processResult.data!
+		)
+
 		setSubmittedData(formattedData)
 		setShowSubmissionModal(true)
 		setError('')
@@ -112,19 +120,20 @@ export default function FormViewPage({ params }: FormViewPageProps) {
 			control: {
 				[field.id]: {
 					value: control._formValues?.[field.id] || '',
-					onChange: (value: any) => control._setValue(field.id, value),
-					onBlur: () => control._trigger(field.id)
-				}
+					onChange: (value: unknown) => control._setValue(field.id, value),
+					onBlur: () => control._trigger(field.id),
+				},
 			},
-			errors
+			errors,
 		})
 
 		if (!result.success) {
-			MCPLogger.error('renderField', result.errors?.[0] || new Error('Field rendering failed'))
+			MCPLogger.error(
+				'renderField',
+				result.errors?.[0] || new Error('Field rendering failed')
+			)
 			return (
-				<div className="p-error">
-					Failed to render field: {field.label}
-				</div>
+				<div className='p-error'>Failed to render field: {field.label}</div>
 			)
 		}
 
@@ -134,10 +143,8 @@ export default function FormViewPage({ params }: FormViewPageProps) {
 				name={field.id}
 				control={control}
 				rules={FieldMCP.getValidationRules(field)}
-				render={({ field: { onChange, value, onBlur } }) => (
-					<div>
-						{result.data}
-					</div>
+				render={() => (
+					<div>{result.data}</div>
 				)}
 			/>
 		)
@@ -145,7 +152,7 @@ export default function FormViewPage({ params }: FormViewPageProps) {
 
 	const renderSubmissionData = () => {
 		return (
-			<div className="space-y-4">
+			<div className='space-y-4'>
 				{Object.entries(submittedData).map(([fieldId, value]) => {
 					const field = form?.fields.find(f => f.id === fieldId)
 					if (!field) return null
@@ -160,9 +167,11 @@ export default function FormViewPage({ params }: FormViewPageProps) {
 					}
 
 					return (
-						<div key={fieldId} className="p-3 bg-gray-800 rounded">
-							<div className="font-semibold text-white mb-1">{field.label}</div>
-							<div className="text-gray-300">{displayValue || 'No value provided'}</div>
+						<div key={fieldId} className='p-3 bg-gray-800 rounded'>
+							<div className='font-semibold text-white mb-1'>{field.label}</div>
+							<div className='text-gray-300'>
+								{displayValue || 'No value provided'}
+							</div>
 						</div>
 					)
 				})}
@@ -172,11 +181,11 @@ export default function FormViewPage({ params }: FormViewPageProps) {
 
 	if (isLoading || !resolvedParams) {
 		return (
-			<div className="form-flow-container">
-				<div className="flex align-items-center justify-content-center min-h-screen">
-					<div className="text-center">
-						<i className="pi pi-spinner pi-spin text-4xl text-white mb-4"></i>
-						<p className="text-gray-300">Loading form...</p>
+			<div className='form-flow-container'>
+				<div className='flex align-items-center justify-content-center min-h-screen'>
+					<div className='text-center'>
+						<i className='pi pi-spinner pi-spin text-4xl text-white mb-4'></i>
+						<p className='text-gray-300'>Loading form...</p>
 					</div>
 				</div>
 			</div>
@@ -185,13 +194,17 @@ export default function FormViewPage({ params }: FormViewPageProps) {
 
 	if (error || !form) {
 		return (
-			<div className="form-flow-container">
-				<div className="flex align-items-center justify-content-center min-h-screen">
-					<div className="text-center">
-						<Message severity="error" text={error || 'Form not found'} className="mb-4" />
+			<div className='form-flow-container'>
+				<div className='flex align-items-center justify-content-center min-h-screen'>
+					<div className='text-center'>
+						<Message
+							severity='error'
+							text={error || 'Form not found'}
+							className='mb-4'
+						/>
 						<Button
-							label="Go Home"
-							icon="pi pi-home"
+							label='Go Home'
+							icon='pi pi-home'
 							onClick={() => router.push('/')}
 						/>
 					</div>
@@ -201,39 +214,44 @@ export default function FormViewPage({ params }: FormViewPageProps) {
 	}
 
 	return (
-		<div className="form-flow-container">
-			<div className="p-4">
-				<div className="max-w-2xl mx-auto">
-					<div className="text-center mb-6">
-						<h1 className="text-3xl font-bold text-white mb-2">{form.title}</h1>
+		<div className='form-flow-container'>
+			<div className='p-4'>
+				<div className='max-w-2xl mx-auto'>
+					<div className='text-center mb-6'>
+						<h1 className='text-3xl font-bold text-white mb-2'>{form.title}</h1>
 						{form.description && (
-							<p className="text-gray-300 text-lg">{form.description}</p>
+							<p className='text-gray-300 text-lg'>{form.description}</p>
 						)}
 					</div>
 
-					<Card className="form-flow-card">
-						<form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-							{form.fields.map((field) => (
-								<div key={field.id} className="field">
-									<label htmlFor={field.id} className="block text-sm font-medium text-gray-300 mb-2">
+					<Card className='form-flow-card'>
+						<form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+							{form.fields.map(field => (
+								<div key={field.id} className='field'>
+									<label
+										htmlFor={field.id}
+										className='block text-sm font-medium text-gray-300 mb-2'
+									>
 										{field.label}
-										{field.required && <span className="text-red-400 ml-1">*</span>}
+										{field.required && (
+											<span className='text-red-400 ml-1'>*</span>
+										)}
 									</label>
 									{renderField(field)}
 									{errors[field.id] && (
-										<small className="p-error block mt-1">
+										<small className='p-error block mt-1'>
 											{errors[field.id]?.message as string}
 										</small>
 									)}
 								</div>
 							))}
 
-							<div className="flex justify-content-center pt-6">
+							<div className='flex justify-content-center pt-6'>
 								<Button
-									type="submit"
-									label="Submit Form"
-									icon="pi pi-send"
-									className="p-button-primary p-button-lg"
+									type='submit'
+									label='Submit Form'
+									icon='pi pi-send'
+									className='p-button-primary p-button-lg'
 								/>
 							</div>
 						</form>
@@ -242,31 +260,33 @@ export default function FormViewPage({ params }: FormViewPageProps) {
 			</div>
 
 			<Dialog
-				header="Form Submission"
+				header='Form Submission'
 				visible={showSubmissionModal}
 				onHide={() => setShowSubmissionModal(false)}
 				style={{ width: '50vw' }}
 				modal
-				className="p-fluid"
+				className='p-fluid'
 			>
-				<div className="mb-4">
+				<div className='mb-4'>
 					<Message
-						severity="success"
-						text="Form submitted successfully!"
-						className="mb-4"
+						severity='success'
+						text='Form submitted successfully!'
+						className='mb-4'
 					/>
-					<h3 className="text-lg font-semibold text-white mb-3">Submitted Data:</h3>
+					<h3 className='text-lg font-semibold text-white mb-3'>
+						Submitted Data:
+					</h3>
 					{renderSubmissionData()}
 				</div>
-				<div className="flex justify-content-end">
+				<div className='flex justify-content-end'>
 					<Button
-						label="Close"
-						icon="pi pi-check"
+						label='Close'
+						icon='pi pi-check'
 						onClick={() => setShowSubmissionModal(false)}
-						className="p-button-primary"
+						className='p-button-primary'
 					/>
 				</div>
 			</Dialog>
 		</div>
 	)
-} 
+}

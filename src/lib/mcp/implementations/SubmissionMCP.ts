@@ -5,10 +5,12 @@
  * processing, and data transformation.
  */
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { ISubmissionProtocol } from '../protocols/ISubmissionProtocol';
 import { MCPResult, SubmissionValidationResult, FormValidationContext, MCPError } from '../protocols/types';
 import { MCPLogger } from './logger';
-import { Form, FormField, FormSubmission, FieldType } from '@/types';
+import { Form, FormField, FormSubmission } from '@/types';
 import { generateId } from '@/utils';
 
 export class SubmissionMCP implements ISubmissionProtocol {
@@ -389,7 +391,7 @@ export class SubmissionMCP implements ISubmissionProtocol {
 	/**
 	 * Generates submission metadata
 	 */
-	static generateSubmissionMetadata(formId: string): Partial<FormSubmission> {
+	static generateSubmissionMetadata(_formId: string): Partial<FormSubmission> {
 		return {
 			id: generateId(),
 			submittedAt: new Date()

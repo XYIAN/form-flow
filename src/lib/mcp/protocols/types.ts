@@ -10,10 +10,10 @@ export interface MCPError {
 	message: string;
 	field?: string;
 	details?: {
-		expected?: any;
-		actual?: any;
+		expected?: unknown;
+		actual?: unknown;
 		suggestion?: string;
-		context?: any;
+		context?: unknown;
 	};
 	timestamp: Date;
 }
@@ -44,16 +44,20 @@ export interface RenderResult {
 
 export interface FieldRenderProps {
 	field: import('@/types').FormField;
-	control: any; // React Hook Form Control
-	errors: any; // React Hook Form FieldErrors
-	onChange?: (value: any) => void;
+	control: Record<string, {
+		value: unknown;
+		onChange: (value: unknown) => void;
+		onBlur: () => void;
+	}>;
+	errors: Record<string, { message?: string }>;
+	onChange?: (value: unknown) => void;
 	onBlur?: () => void;
-	value?: any;
+	value?: unknown;
 }
 
 export interface FormValidationContext {
 	form: import('@/types').Form;
-	submissionData: Record<string, any>;
+	submissionData: Record<string, unknown>;
 	fieldErrors: Record<string, string[]>;
 }
 
