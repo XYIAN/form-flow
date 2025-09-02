@@ -9,6 +9,8 @@ import { FormComponent, ComponentCategory } from '@/types'
 import { useDebounce } from '../../../shared/hooks/useDebounce'
 import { CustomizableBackground } from '../../../shared/components/CustomizableBackground'
 import { ComponentPreview } from './ComponentPreview'
+import { Draggable } from '../../../shared/components/Draggable'
+import { DragPreview } from '../../../shared/components/DragPreview'
 import '../../../shared/styles/transitions.css'
 
 interface ComponentPaletteProps {
@@ -105,35 +107,37 @@ export default function ComponentPalette({
 	}
 
 	return (
-		<div className='space-y-4'>
-			<div className='flex flex-wrap gap-4'>
-				<div className='flex-grow'>
-					<div className='p-input-icon-left w-full'>
-						<i className='pi pi-search' />
-						<InputText
-							className='w-full'
-							placeholder='Search components...'
-							value={searchQuery}
-							onChange={e => onSearchChange(e.target.value)}
-						/>
+		<>
+			<DragPreview />
+			<div className='space-y-4'>
+				<div className='flex flex-wrap gap-4'>
+					<div className='flex-grow'>
+						<div className='p-input-icon-left w-full'>
+							<i className='pi pi-search' />
+							<InputText
+								className='w-full'
+								placeholder='Search components...'
+								value={searchQuery}
+								onChange={e => onSearchChange(e.target.value)}
+							/>
+						</div>
 					</div>
+					<Dropdown
+						value={selectedCategory}
+						options={[
+							{ label: 'Basic', value: 'basic' },
+							{ label: 'Contact', value: 'contact' },
+							{ label: 'Financial', value: 'financial' },
+							{ label: 'DateTime', value: 'datetime' },
+							{ label: 'Choice', value: 'choice' },
+							{ label: 'Media', value: 'media' },
+						]}
+						onChange={e => onCategoryChange(e.value)}
+						placeholder='Select Category'
+					/>
 				</div>
-				<Dropdown
-					value={selectedCategory}
-					options={[
-						{ label: 'Basic', value: 'basic' },
-						{ label: 'Contact', value: 'contact' },
-						{ label: 'Financial', value: 'financial' },
-						{ label: 'DateTime', value: 'datetime' },
-						{ label: 'Choice', value: 'choice' },
-						{ label: 'Media', value: 'media' },
-					]}
-					onChange={e => onCategoryChange(e.value)}
-					placeholder='Select Category'
-				/>
-			</div>
 
-			<TransitionGroup className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+				<TransitionGroup className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
 				{loading ? (
 					<div className='col-span-full text-center'>Loading components...</div>
 				) : components.length === 0 ? (
@@ -141,41 +145,46 @@ export default function ComponentPalette({
 				) : (
 					components.map(component => (
 						<CSSTransition key={component.id} timeout={300} classNames='fade'>
-							<CustomizableBackground
-								className='component-hover'
-								defaultBackground={
-									customStyles[component.id]?.background || '#ffffff'
-								}
-								defaultOpacity={customStyles[component.id]?.opacity || 1}
-								onCustomize={style =>
-									handleCustomizeBackground(component.id, style)
-								}
+							<Draggable
+								type="component"
+								data={component}
+								className="w-full"
 							>
-								<Card
-									className='cursor-pointer transition-all'
-									onClick={() => onComponentSelect(component)}
+								<CustomizableBackground
+									className='component-hover'
+									defaultBackground={
+										customStyles[component.id]?.background || '#ffffff'
+									}
+									defaultOpacity={customStyles[component.id]?.opacity || 1}
+									onCustomize={style =>
+										handleCustomizeBackground(component.id, style)
+									}
 								>
+									<Card
+										className='cursor-pointer transition-all'
+										onClick={() => onComponentSelect(component)}
+									>
 									<div className='flex items-start gap-3'>
 										<i className={`${component.icon} text-2xl`} />
-																			<div className='flex-grow'>
-										<div className='flex items-center justify-between mb-2'>
-											<h3 className='text-lg font-semibold'>
-												{component.name}
-											</h3>
-											<ComponentPreview
-												component={component}
-												onUse={onComponentSelect}
-											/>
+										<div className='flex-grow'>
+											<div className='flex items-center justify-between mb-2'>
+												<h3 className='text-lg font-semibold'>
+													{component.name}
+												</h3>
+												<ComponentPreview
+													component={component}
+													onUse={onComponentSelect}
+												/>
+											</div>
+											<p className='text-sm text-gray-600 mb-2'>
+												{component.description}
+											</p>
+											<div className='flex flex-wrap gap-2'>
+												{component.metadata.tags.map(tag => (
+													<Badge key={tag} value={tag} />
+												))}
+											</div>
 										</div>
-										<p className='text-sm text-gray-600 mb-2'>
-											{component.description}
-										</p>
-										<div className='flex flex-wrap gap-2'>
-											{component.metadata.tags.map(tag => (
-												<Badge key={tag} value={tag} />
-											))}
-										</div>
-									</div>
 									</div>
 								</Card>
 							</CustomizableBackground>

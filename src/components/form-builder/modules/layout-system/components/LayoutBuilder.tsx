@@ -7,6 +7,8 @@ import { LayoutSystemMCP } from '@/lib/mcp'
 import { FormLayout, LayoutType } from '@/types'
 import { CustomizableBackground } from '../../../shared/components/CustomizableBackground'
 import { LayoutPreview } from './LayoutPreview'
+import { Draggable } from '../../../shared/components/Draggable'
+import { DragPreview } from '../../../shared/components/DragPreview'
 import '../../../shared/styles/transitions.css'
 
 interface LayoutBuilderProps {
@@ -70,22 +72,24 @@ export default function LayoutBuilder({
 	}
 
 	return (
-		<div className='space-y-4'>
-			<div className='flex justify-end'>
-				<Dropdown
-					value={selectedType}
-					options={[
-						{ label: 'Responsive', value: 'responsive' },
-						{ label: 'Fixed', value: 'fixed' },
-						{ label: 'Grid', value: 'grid' },
-						{ label: 'Flex', value: 'flex' },
-					]}
-					onChange={e => setSelectedType(e.value)}
-					placeholder='Select Layout Type'
-				/>
-			</div>
+		<>
+			<DragPreview />
+			<div className='space-y-4'>
+				<div className='flex justify-end'>
+					<Dropdown
+						value={selectedType}
+						options={[
+							{ label: 'Responsive', value: 'responsive' },
+							{ label: 'Fixed', value: 'fixed' },
+							{ label: 'Grid', value: 'grid' },
+							{ label: 'Flex', value: 'flex' },
+						]}
+						onChange={e => setSelectedType(e.value)}
+						placeholder='Select Layout Type'
+					/>
+				</div>
 
-			<TransitionGroup className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+				<TransitionGroup className='grid grid-cols-1 md:grid-cols-2 gap-4'>
 				{loading ? (
 					<div className='col-span-full text-center'>Loading layouts...</div>
 				) : layouts.length === 0 ? (
@@ -93,41 +97,48 @@ export default function LayoutBuilder({
 				) : (
 					layouts.map(layout => (
 						<CSSTransition key={layout.id} timeout={300} classNames='fade'>
-							<CustomizableBackground
-								className={`layout-preview ${
-									selectedLayout?.id === layout.id
-										? 'ring-2 ring-primary'
-										: 'hover:shadow-lg'
-								}`}
-								defaultBackground={
-									customStyles[layout.id]?.background || '#ffffff'
-								}
-								defaultOpacity={customStyles[layout.id]?.opacity || 1}
-								onCustomize={style =>
-									handleCustomizeBackground(layout.id, style)
-								}
+							<Draggable
+								type="layout"
+								data={layout}
+								className="w-full"
 							>
-								<Card
-									className='cursor-pointer transition-all'
-									onClick={() => onLayoutSelect(layout)}
+								<CustomizableBackground
+									className={`layout-preview ${
+										selectedLayout?.id === layout.id
+											? 'ring-2 ring-primary'
+											: 'hover:shadow-lg'
+									}`}
+									defaultBackground={
+										customStyles[layout.id]?.background || '#ffffff'
+									}
+									defaultOpacity={customStyles[layout.id]?.opacity || 1}
+									onCustomize={style =>
+										handleCustomizeBackground(layout.id, style)
+									}
 								>
+									<Card
+										className='cursor-pointer transition-all'
+										onClick={() => onLayoutSelect(layout)}
+									>
 									<div className='space-y-3'>
 										<div className='flex items-start justify-between'>
-																					<div className='flex items-center justify-between'>
-											<div>
-												<h3 className='text-lg font-semibold'>{layout.name}</h3>
-												<p className='text-sm text-gray-600'>
-													{layout.description}
-												</p>
+											<div className='flex items-center justify-between'>
+												<div>
+													<h3 className='text-lg font-semibold'>
+														{layout.name}
+													</h3>
+													<p className='text-sm text-gray-600'>
+														{layout.description}
+													</p>
+												</div>
+												<div className='flex items-center gap-2'>
+													<Badge value={layout.type} />
+													<LayoutPreview
+														layout={layout}
+														onUse={onLayoutSelect}
+													/>
+												</div>
 											</div>
-											<div className='flex items-center gap-2'>
-												<Badge value={layout.type} />
-												<LayoutPreview
-													layout={layout}
-													onUse={onLayoutSelect}
-												/>
-											</div>
-										</div>
 										</div>
 
 										<div className='grid grid-cols-12 gap-2 p-2 bg-gray-50 rounded'>

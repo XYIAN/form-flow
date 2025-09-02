@@ -1,0 +1,137 @@
+/* Draggable Item Animations */
+.draggable-item {
+	transition: transform 200ms ease-in-out, box-shadow 200ms ease-in-out;
+}
+
+.draggable-item:hover {
+	transform: translateY(-2px);
+	box-shadow: var(--shadow-lg);
+}
+
+.draggable-item:active {
+	transform: scale(0.98);
+	box-shadow: var(--shadow-md);
+}
+
+/* Drop Zone Animations */
+.drop-zone {
+	transition: all 200ms ease-in-out;
+}
+
+.drop-zone-active {
+	transform: scale(1.02);
+	box-shadow: var(--shadow-lg);
+	background-color: var(--primary-50);
+	border-color: var(--primary-500);
+}
+
+/* Preview Animations */
+.drag-preview {
+	animation: preview-appear 150ms ease-out;
+	pointer-events: none;
+	will-change: transform;
+}
+
+@keyframes preview-appear {
+	from {
+		opacity: 0;
+		transform: scale(0.8) translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1) translateY(0);
+	}
+}
+
+/* Section Movement Animations */
+.section-move {
+	transition: transform 300ms ease-in-out;
+}
+
+.section-move-up {
+	animation: move-up 300ms ease-in-out;
+}
+
+.section-move-down {
+	animation: move-down 300ms ease-in-out;
+}
+
+@keyframes move-up {
+	0% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(-10px);
+	}
+	100% {
+		transform: translateY(0);
+	}
+}
+
+@keyframes move-down {
+	0% {
+		transform: translateY(0);
+	}
+	50% {
+		transform: translateY(10px);
+	}
+	100% {
+		transform: translateY(0);
+	}
+}
+
+/* Component Drop Animations */
+.component-drop {
+	animation: drop-bounce 400ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes drop-bounce {
+	0% {
+		transform: scale(0.3);
+		opacity: 0;
+	}
+	70% {
+		transform: scale(1.05);
+		opacity: 0.8;
+	}
+	100% {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+
+/* Layout Application Animations */
+.layout-apply {
+	animation: layout-transform 500ms ease-in-out;
+}
+
+@keyframes layout-transform {
+	0% {
+		transform: scale(1);
+		opacity: 1;
+	}
+	50% {
+		transform: scale(0.95);
+		opacity: 0.5;
+	}
+	100% {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+
+/* Template Application Animations */
+.template-apply {
+	animation: template-cascade 600ms ease-out;
+}
+
+@keyframes template-cascade {
+	0% {
+		transform: translateY(-20px);
+		opacity: 0;
+	}
+	100% {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}

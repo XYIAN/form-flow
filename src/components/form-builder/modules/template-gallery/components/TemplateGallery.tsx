@@ -10,6 +10,8 @@ import { FormTemplate, TemplateCategory } from '@/types'
 import { useDebounce } from '../../../shared/hooks/useDebounce'
 import { CustomizableBackground } from '../../../shared/components/CustomizableBackground'
 import { TemplatePreview } from './TemplatePreview'
+import { Draggable } from '../../../shared/components/Draggable'
+import { DragPreview } from '../../../shared/components/DragPreview'
 import '../../../shared/styles/transitions.css'
 
 interface TemplateGalleryProps {
@@ -143,45 +145,47 @@ export default function TemplateGallery({
 	}
 
 	return (
-		<div className='space-y-4'>
-			<div className='flex flex-wrap gap-4'>
-				<div className='flex-grow'>
-					<div className='p-input-icon-left w-full'>
-						<i className='pi pi-search' />
-						<InputText
-							className='w-full'
-							placeholder='Search templates...'
-							value={searchQuery}
-							onChange={e => onSearchChange(e.target.value)}
-						/>
+		<>
+			<DragPreview />
+			<div className='space-y-4'>
+				<div className='flex flex-wrap gap-4'>
+					<div className='flex-grow'>
+						<div className='p-input-icon-left w-full'>
+							<i className='pi pi-search' />
+							<InputText
+								className='w-full'
+								placeholder='Search templates...'
+								value={searchQuery}
+								onChange={e => onSearchChange(e.target.value)}
+							/>
+						</div>
 					</div>
+					<Dropdown
+						value={selectedCategory}
+						options={[
+							{ label: 'Contact', value: 'contact' },
+							{ label: 'Financial', value: 'financial' },
+							{ label: 'Survey', value: 'survey' },
+							{ label: 'Application', value: 'application' },
+							{ label: 'General', value: 'general' },
+						]}
+						onChange={e => onCategoryChange(e.value)}
+						placeholder='Select Category'
+					/>
+					<Dropdown
+						value={difficultyFilter}
+						options={[
+							{ label: 'All Levels', value: null },
+							{ label: 'Beginner', value: 'beginner' },
+							{ label: 'Intermediate', value: 'intermediate' },
+							{ label: 'Advanced', value: 'advanced' },
+						]}
+						onChange={e => onDifficultyChange(e.value)}
+						placeholder='Select Difficulty'
+					/>
 				</div>
-				<Dropdown
-					value={selectedCategory}
-					options={[
-						{ label: 'Contact', value: 'contact' },
-						{ label: 'Financial', value: 'financial' },
-						{ label: 'Survey', value: 'survey' },
-						{ label: 'Application', value: 'application' },
-						{ label: 'General', value: 'general' },
-					]}
-					onChange={e => onCategoryChange(e.value)}
-					placeholder='Select Category'
-				/>
-				<Dropdown
-					value={difficultyFilter}
-					options={[
-						{ label: 'All Levels', value: null },
-						{ label: 'Beginner', value: 'beginner' },
-						{ label: 'Intermediate', value: 'intermediate' },
-						{ label: 'Advanced', value: 'advanced' },
-					]}
-					onChange={e => onDifficultyChange(e.value)}
-					placeholder='Select Difficulty'
-				/>
-			</div>
 
-			<TransitionGroup className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+				<TransitionGroup className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
 				{loading ? (
 					<div className='col-span-full text-center'>Loading templates...</div>
 				) : templates.length === 0 ? (
@@ -189,24 +193,29 @@ export default function TemplateGallery({
 				) : (
 					templates.map(template => (
 						<CSSTransition key={template.id} timeout={300} classNames='fade'>
-							<CustomizableBackground
-								className='template-card'
-								defaultBackground={
-									customStyles[template.id]?.background || '#ffffff'
-								}
-								defaultOpacity={customStyles[template.id]?.opacity || 1}
-								onCustomize={style =>
-									handleCustomizeBackground(template.id, style)
-								}
+							<Draggable
+								type="template"
+								data={template}
+								className="w-full"
 							>
-								<Card
-									className={`cursor-pointer transition-all ${
-										selectedTemplate?.id === template.id
-											? 'ring-2 ring-primary'
-											: ''
-									}`}
-									onClick={() => onTemplateSelect(template)}
+								<CustomizableBackground
+									className='template-card'
+									defaultBackground={
+										customStyles[template.id]?.background || '#ffffff'
+									}
+									defaultOpacity={customStyles[template.id]?.opacity || 1}
+									onCustomize={style =>
+										handleCustomizeBackground(template.id, style)
+									}
 								>
+									<Card
+										className={`cursor-pointer transition-all ${
+											selectedTemplate?.id === template.id
+												? 'ring-2 ring-primary'
+												: ''
+										}`}
+										onClick={() => onTemplateSelect(template)}
+									>
 									<div className='space-y-3'>
 										<div className='flex items-start justify-between'>
 											<div>
@@ -217,10 +226,16 @@ export default function TemplateGallery({
 													{template.description}
 												</p>
 											</div>
-											<Badge
-												value={template.difficulty}
-												severity={getDifficultyColor(template.difficulty)}
-											/>
+											<div className='flex items-center gap-2'>
+												<Badge
+													value={template.difficulty}
+													severity={getDifficultyColor(template.difficulty)}
+												/>
+												<TemplatePreview
+													template={template}
+													onUse={onTemplateUse}
+												/>
+											</div>
 										</div>
 
 										<div className='grid grid-cols-12 gap-2 p-2 bg-gray-50 rounded'>

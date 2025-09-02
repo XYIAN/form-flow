@@ -1,8 +1,6 @@
 import { ITemplateLibraryProtocol } from '../protocols/ITemplateLibraryProtocol'
-import { MCPResult, MCPError } from '../protocols/types'
+import { MCPResult } from '../protocols/types'
 import { MCPLogger } from './logger'
-import { CSVParserMCP, CSVData } from './CSVParserMCP'
-import { FieldTypeDetectorMCP } from './FieldTypeDetectorMCP'
 import { ComponentLibraryMCP } from './ComponentLibraryMCP'
 import { LayoutSystemMCP } from './LayoutSystemMCP'
 import {
@@ -283,8 +281,8 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 	 * Create form fields from components
 	 */
 	private static createFieldsFromComponents(
-		components: any[],
-		layout: any
+		components: unknown[],
+		layout: unknown
 	): FormField[] {
 		const fields: FormField[] = []
 		const fieldMap = new Map<string, number>()
@@ -469,8 +467,8 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 	 */
 	private static createComponentMapping(
 		fields: FormField[]
-	): Record<string, any> {
-		const mapping: Record<string, any> = {}
+	): Record<string, unknown> {
+		const mapping: Record<string, unknown> = {}
 		fields.forEach(field => {
 			mapping[field.label] = {
 				type: field.type,

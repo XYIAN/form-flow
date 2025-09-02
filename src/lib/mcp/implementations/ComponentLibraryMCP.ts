@@ -1,5 +1,5 @@
 import { IComponentLibraryProtocol } from '../protocols/IComponentLibraryProtocol'
-import { MCPResult, MCPError } from '../protocols/types'
+import { MCPResult } from '../protocols/types'
 import { MCPLogger } from './logger'
 import { CSVParserMCP, CSVData } from './CSVParserMCP'
 import { FieldTypeDetectorMCP } from './FieldTypeDetectorMCP'
@@ -183,7 +183,7 @@ export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 	/**
 	 * Create detection contexts for field type detection
 	 */
-	private static createDetectionContexts(csvData: CSVData, analysis: any) {
+	private static createDetectionContexts(csvData: CSVData, analysis: unknown) {
 		return csvData.headers.map((header, index) => ({
 			fieldName: header,
 			sampleData: csvData.rows.map(row => row[index]),
@@ -320,7 +320,7 @@ export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 	 */
 	private static generateDefaultProps(
 		fieldType: FieldType,
-		mapping?: any
+		mapping?: Record<string, unknown>
 	): ComponentProps {
 		const props: ComponentProps = {
 			required: false,
@@ -339,7 +339,7 @@ export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 	 * Generate default validation rules for field type
 	 */
 	private static generateDefaultValidation(fieldType: FieldType) {
-		const validationMap: Record<FieldType, any> = {
+		const validationMap: Record<FieldType, ValidationRule[]> = {
 			email: {
 				rules: [
 					{ type: 'email', message: 'Please enter a valid email address' },

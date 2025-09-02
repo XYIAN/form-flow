@@ -18,7 +18,7 @@ export default function TemplatePreview({
 	onUse,
 }: TemplatePreviewProps) {
 	const [showPreview, setShowPreview] = useState(false)
-	const [sampleValues, setSampleValues] = useState<Record<string, any>>({})
+	const [sampleValues, setSampleValues] = useState<Record<string, unknown>>({})
 
 	const renderField = (field: FormField) => {
 		const value = sampleValues[field.id]
@@ -27,7 +27,7 @@ export default function TemplatePreview({
 				{FieldMCP.render({
 					...field,
 					value,
-					onChange: (newValue: any) =>
+					onChange: (newValue: unknown) =>
 						setSampleValues(prev => ({ ...prev, [field.id]: newValue })),
 				})}
 			</div>
@@ -47,7 +47,7 @@ export default function TemplatePreview({
 		}
 	}
 
-	const renderSectionPreview = (section: any) => (
+	const renderSectionPreview = (section: unknown) => (
 		<div
 			key={section.id}
 			className='border border-dashed border-gray-300 rounded-lg p-4 space-y-4'
@@ -68,11 +68,11 @@ export default function TemplatePreview({
 				className='grid gap-4'
 				style={{
 					gridTemplateColumns: section.columns
-						.map((col: any) => col.width || '1fr')
+						.map((col: unknown) => (col as { width?: string }).width || '1fr')
 						.join(' '),
 				}}
 			>
-				{section.columns.map((column: any) => (
+				{section.columns.map((column: unknown) => (
 					<div key={column.id}>
 						{column.field && (
 							<div className='border border-dotted border-gray-200 rounded p-3'>

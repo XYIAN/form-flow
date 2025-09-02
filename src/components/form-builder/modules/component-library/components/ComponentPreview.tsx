@@ -18,7 +18,7 @@ export default function ComponentPreview({
 	onUse,
 }: ComponentPreviewProps) {
 	const [showPreview, setShowPreview] = useState(false)
-	const [previewValue, setPreviewValue] = useState<any>(null)
+	const [previewValue, setPreviewValue] = useState<unknown>(null)
 
 	useEffect(() => {
 		// Generate sample value based on component type
