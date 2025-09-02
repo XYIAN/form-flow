@@ -186,100 +186,99 @@ export default function TemplateGallery({
 				</div>
 
 				<TransitionGroup className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
-				{loading ? (
-					<div className='col-span-full text-center'>Loading templates...</div>
-				) : templates.length === 0 ? (
-					<div className='col-span-full text-center'>No templates found</div>
-				) : (
-					templates.map(template => (
-						<CSSTransition key={template.id} timeout={300} classNames='fade'>
-							<Draggable
-								type="template"
-								data={template}
-								className="w-full"
-							>
-								<CustomizableBackground
-									className='template-card'
-									defaultBackground={
-										customStyles[template.id]?.background || '#ffffff'
-									}
-									defaultOpacity={customStyles[template.id]?.opacity || 1}
-									onCustomize={style =>
-										handleCustomizeBackground(template.id, style)
-									}
-								>
-									<Card
-										className={`cursor-pointer transition-all ${
-											selectedTemplate?.id === template.id
-												? 'ring-2 ring-primary'
-												: ''
-										}`}
-										onClick={() => onTemplateSelect(template)}
+					{loading ? (
+						<div className='col-span-full text-center'>
+							Loading templates...
+						</div>
+					) : templates.length === 0 ? (
+						<div className='col-span-full text-center'>No templates found</div>
+					) : (
+						templates.map(template => (
+							<CSSTransition key={template.id} timeout={300} classNames='fade'>
+								<Draggable type='template' data={template} className='w-full'>
+									<CustomizableBackground
+										className='template-card'
+										defaultBackground={
+											customStyles[template.id]?.background || '#ffffff'
+										}
+										defaultOpacity={customStyles[template.id]?.opacity || 1}
+										onCustomize={style =>
+											handleCustomizeBackground(template.id, style)
+										}
 									>
-										<div className='space-y-3'>
-											<div className='flex items-start justify-between'>
-												<div>
-													<h3 className='text-lg font-semibold'>
-														{template.name}
-													</h3>
-													<p className='text-sm text-gray-600'>
-														{template.description}
-													</p>
-												</div>
-												<div className='flex items-center gap-2'>
-													<Badge
-														value={template.difficulty}
-														severity={getDifficultyColor(template.difficulty)}
-													/>
-													<TemplatePreview
-														template={template}
-														onUse={onTemplateUse}
-													/>
-												</div>
-											</div>
-
-											<div className='grid grid-cols-12 gap-2 p-2 bg-gray-50 rounded'>
-												{template.layout.sections.map((section, index) => (
-													<div
-														key={section.id}
-														className={`col-span-${
-															12 / section.columns.length
-														} p-2 bg-white rounded shadow-sm`}
-													>
-														<div className='text-xs text-center text-gray-500'>
-															Section {index + 1}
-														</div>
+										<Card
+											className={`cursor-pointer transition-all ${
+												selectedTemplate?.id === template.id
+													? 'ring-2 ring-primary'
+													: ''
+											}`}
+											onClick={() => onTemplateSelect(template)}
+										>
+											<div className='space-y-3'>
+												<div className='flex items-start justify-between'>
+													<div>
+														<h3 className='text-lg font-semibold'>
+															{template.name}
+														</h3>
+														<p className='text-sm text-gray-600'>
+															{template.description}
+														</p>
 													</div>
-												))}
-											</div>
+													<div className='flex items-center gap-2'>
+														<Badge
+															value={template.difficulty}
+															severity={getDifficultyColor(template.difficulty)}
+														/>
+														<TemplatePreview
+															template={template}
+															onUse={onTemplateUse}
+														/>
+													</div>
+												</div>
 
-											<div className='flex flex-wrap gap-2'>
-												<Badge value={`${template.fields.length} fields`} />
-												<Badge
-													value={`${template.layout.sections.length} sections`}
+												<div className='grid grid-cols-12 gap-2 p-2 bg-gray-50 rounded'>
+													{template.layout.sections.map((section, index) => (
+														<div
+															key={section.id}
+															className={`col-span-${
+																12 / section.columns.length
+															} p-2 bg-white rounded shadow-sm`}
+														>
+															<div className='text-xs text-center text-gray-500'>
+																Section {index + 1}
+															</div>
+														</div>
+													))}
+												</div>
+
+												<div className='flex flex-wrap gap-2'>
+													<Badge value={`${template.fields.length} fields`} />
+													<Badge
+														value={`${template.layout.sections.length} sections`}
+													/>
+													{template.metadata?.source && (
+														<Badge value={template.metadata.source} />
+													)}
+												</div>
+
+												<Button
+													label='Use Template'
+													icon='pi pi-check'
+													className='w-full p-button-outlined'
+													onClick={e => {
+														e.stopPropagation()
+														onTemplateUse(template)
+													}}
 												/>
-												{template.metadata?.source && (
-													<Badge value={template.metadata.source} />
-												)}
 											</div>
-
-											<Button
-												label='Use Template'
-												icon='pi pi-check'
-												className='w-full p-button-outlined'
-												onClick={e => {
-													e.stopPropagation()
-													onTemplateUse(template)
-												}}
-											/>
-										</div>
-									</Card>
-								</CustomizableBackground>
-							</Draggable>
-						</CSSTransition>
-					))
-				)}
-			</TransitionGroup>
-		</div>
+										</Card>
+									</CustomizableBackground>
+								</Draggable>
+							</CSSTransition>
+						))
+					)}
+				</TransitionGroup>
+			</div>
+		</>
 	)
 }

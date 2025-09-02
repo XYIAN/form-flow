@@ -90,92 +90,89 @@ export default function LayoutBuilder({
 				</div>
 
 				<TransitionGroup className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-				{loading ? (
-					<div className='col-span-full text-center'>Loading layouts...</div>
-				) : layouts.length === 0 ? (
-					<div className='col-span-full text-center'>No layouts found</div>
-				) : (
-					layouts.map(layout => (
-						<CSSTransition key={layout.id} timeout={300} classNames='fade'>
-							<Draggable
-								type="layout"
-								data={layout}
-								className="w-full"
-							>
-								<CustomizableBackground
-									className={`layout-preview ${
-										selectedLayout?.id === layout.id
-											? 'ring-2 ring-primary'
-											: 'hover:shadow-lg'
-									}`}
-									defaultBackground={
-										customStyles[layout.id]?.background || '#ffffff'
-									}
-									defaultOpacity={customStyles[layout.id]?.opacity || 1}
-									onCustomize={style =>
-										handleCustomizeBackground(layout.id, style)
-									}
-								>
-									<Card
-										className='cursor-pointer transition-all'
-										onClick={() => onLayoutSelect(layout)}
+					{loading ? (
+						<div className='col-span-full text-center'>Loading layouts...</div>
+					) : layouts.length === 0 ? (
+						<div className='col-span-full text-center'>No layouts found</div>
+					) : (
+						layouts.map(layout => (
+							<CSSTransition key={layout.id} timeout={300} classNames='fade'>
+								<Draggable type='layout' data={layout} className='w-full'>
+									<CustomizableBackground
+										className={`layout-preview ${
+											selectedLayout?.id === layout.id
+												? 'ring-2 ring-primary'
+												: 'hover:shadow-lg'
+										}`}
+										defaultBackground={
+											customStyles[layout.id]?.background || '#ffffff'
+										}
+										defaultOpacity={customStyles[layout.id]?.opacity || 1}
+										onCustomize={style =>
+											handleCustomizeBackground(layout.id, style)
+										}
 									>
-										<div className='space-y-3'>
-											<div className='flex items-start justify-between'>
-												<div className='flex items-center justify-between'>
-													<div>
-														<h3 className='text-lg font-semibold'>
-															{layout.name}
-														</h3>
-														<p className='text-sm text-gray-600'>
-															{layout.description}
-														</p>
-													</div>
-													<div className='flex items-center gap-2'>
-														<Badge value={layout.type} />
-														<LayoutPreview
-															layout={layout}
-															onUse={onLayoutSelect}
-														/>
-													</div>
-												</div>
-											</div>
-
-											<div className='grid grid-cols-12 gap-2 p-2 bg-gray-50 rounded'>
-												{layout.sections.map((section, index) => (
-													<div
-														key={section.id}
-														className={`col-span-${
-															12 / section.columns.length
-														} p-2 bg-white rounded shadow-sm`}
-													>
-														<div className='text-xs text-center text-gray-500'>
-															Section {index + 1}
+										<Card
+											className='cursor-pointer transition-all'
+											onClick={() => onLayoutSelect(layout)}
+										>
+											<div className='space-y-3'>
+												<div className='flex items-start justify-between'>
+													<div className='flex items-center justify-between'>
+														<div>
+															<h3 className='text-lg font-semibold'>
+																{layout.name}
+															</h3>
+															<p className='text-sm text-gray-600'>
+																{layout.description}
+															</p>
+														</div>
+														<div className='flex items-center gap-2'>
+															<Badge value={layout.type} />
+															<LayoutPreview
+																layout={layout}
+																onUse={onLayoutSelect}
+															/>
 														</div>
 													</div>
-												))}
-											</div>
+												</div>
 
-											<div className='flex flex-wrap gap-2'>
-												<Badge value={`${layout.sections.length} sections`} />
-												<Badge
-													value={`${layout.sections.reduce(
-														(acc, s) => acc + s.columns.length,
-														0
-													)} columns`}
-												/>
-												{layout.metadata?.source && (
-													<Badge value={layout.metadata.source} />
-												)}
+												<div className='grid grid-cols-12 gap-2 p-2 bg-gray-50 rounded'>
+													{layout.sections.map((section, index) => (
+														<div
+															key={section.id}
+															className={`col-span-${
+																12 / section.columns.length
+															} p-2 bg-white rounded shadow-sm`}
+														>
+															<div className='text-xs text-center text-gray-500'>
+																Section {index + 1}
+															</div>
+														</div>
+													))}
+												</div>
+
+												<div className='flex flex-wrap gap-2'>
+													<Badge value={`${layout.sections.length} sections`} />
+													<Badge
+														value={`${layout.sections.reduce(
+															(acc, s) => acc + s.columns.length,
+															0
+														)} columns`}
+													/>
+													{layout.metadata?.source && (
+														<Badge value={layout.metadata.source} />
+													)}
+												</div>
 											</div>
-										</div>
-									</Card>
-								</CustomizableBackground>
-							</Draggable>
-						</CSSTransition>
-					))
-				)}
-			</TransitionGroup>
-		</div>
+										</Card>
+									</CustomizableBackground>
+								</Draggable>
+							</CSSTransition>
+						))
+					)}
+				</TransitionGroup>
+			</div>
+		</>
 	)
 }

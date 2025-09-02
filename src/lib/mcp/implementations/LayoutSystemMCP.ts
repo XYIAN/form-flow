@@ -21,10 +21,7 @@ export class LayoutSystemMCP implements ILayoutSystemProtocol {
 		const startTime = performance.now()
 
 		try {
-			MCPLogger.info(
-				'LayoutSystemMCP.initialize',
-				'Initializing layout system'
-			)
+			MCPLogger.info('LayoutSystemMCP.initialize', 'Initializing layout system')
 
 			// Create default layouts
 			this.layouts = this.createDefaultLayouts()
@@ -72,11 +69,9 @@ export class LayoutSystemMCP implements ILayoutSystemProtocol {
 		const startTime = performance.now()
 
 		try {
-			MCPLogger.info(
-				'LayoutSystemMCP.getLayouts',
-				'Retrieving all layouts',
-				{ count: this.layouts.length }
-			)
+			MCPLogger.info('LayoutSystemMCP.getLayouts', 'Retrieving all layouts', {
+				count: this.layouts.length,
+			})
 
 			const executionTime = performance.now() - startTime
 			return {
@@ -118,7 +113,9 @@ export class LayoutSystemMCP implements ILayoutSystemProtocol {
 				{ type }
 			)
 
-			const filteredLayouts = this.layouts.filter(layout => layout.type === type)
+			const filteredLayouts = this.layouts.filter(
+				layout => layout.type === type
+			)
 
 			const executionTime = performance.now() - startTime
 			return {
