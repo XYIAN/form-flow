@@ -159,3 +159,201 @@ export interface CSVFormData {
 	description?: string
 	headers: string[]
 }
+
+// Component Library Types
+export interface ComponentLibrary {
+	id: string
+	name: string
+	description: string
+	version: string
+	category: ComponentCategory
+	components: FormComponent[]
+	createdAt: Date
+	updatedAt: Date
+}
+
+export type ComponentCategory = 
+	| 'basic'
+	| 'advanced'
+	| 'financial'
+	| 'contact'
+	| 'media'
+	| 'layout'
+	| 'custom'
+
+export interface FormComponent {
+	id: string
+	name: string
+	description: string
+	category: ComponentCategory
+	type: FieldType
+	icon: string
+	preview: string
+	props: ComponentProps
+	validation: ComponentValidation
+	metadata: ComponentMetadata
+}
+
+export interface ComponentProps {
+	required: boolean
+	placeholder?: string
+	options?: string[]
+	validation?: ComponentValidation
+	style?: ComponentStyle
+	behavior?: ComponentBehavior
+}
+
+export interface ComponentValidation {
+	rules: ValidationRule[]
+	messages: ValidationMessages
+}
+
+export interface ValidationRule {
+	type: 'required' | 'min' | 'max' | 'pattern' | 'email' | 'url' | 'number'
+	value?: string | number
+	message: string
+}
+
+export interface ValidationMessages {
+	required: string
+	invalid: string
+	custom: Record<string, string>
+}
+
+export interface ComponentStyle {
+	width?: string
+	height?: string
+	backgroundColor?: string
+	borderColor?: string
+	textColor?: string
+	fontSize?: string
+	padding?: string
+	margin?: string
+}
+
+export interface ComponentBehavior {
+	showOn?: string
+	hideOn?: string
+	enableOn?: string
+	disableOn?: string
+	clearOn?: string
+}
+
+export interface ComponentMetadata {
+	author: string
+	version: string
+	tags: string[]
+	documentation: string
+	examples: ComponentExample[]
+}
+
+export interface ComponentExample {
+	title: string
+	description: string
+	props: Record<string, unknown>
+	code: string
+}
+
+// Layout System Types
+export interface FormLayout {
+	id: string
+	name: string
+	description: string
+	type: LayoutType
+	sections: FormSection[]
+	metadata: LayoutMetadata
+}
+
+export type LayoutType = 
+	| 'single-column'
+	| 'two-column'
+	| 'three-column'
+	| 'grid'
+	| 'custom'
+
+export interface FormSection {
+	id: string
+	name: string
+	type: SectionType
+	columns: FormColumn[]
+	style: SectionStyle
+	behavior: SectionBehavior
+}
+
+export type SectionType = 
+	| 'header'
+	| 'content'
+	| 'footer'
+	| 'sidebar'
+	| 'custom'
+
+export interface FormColumn {
+	id: string
+	width: number // 1-12 grid system
+	fields: string[] // Field IDs
+	style: ColumnStyle
+}
+
+export interface SectionStyle {
+	backgroundColor?: string
+	borderColor?: string
+	borderRadius?: string
+	padding?: string
+	margin?: string
+	textAlign?: 'left' | 'center' | 'right'
+}
+
+export interface ColumnStyle {
+	backgroundColor?: string
+	borderColor?: string
+	padding?: string
+	margin?: string
+}
+
+export interface SectionBehavior {
+	showOn?: string
+	hideOn?: string
+	enableOn?: string
+	disableOn?: string
+}
+
+export interface LayoutMetadata {
+	author: string
+	version: string
+	tags: string[]
+	responsive: boolean
+	accessibility: boolean
+}
+
+// Template Library Types
+export interface FormTemplate {
+	id: string
+	name: string
+	description: string
+	category: TemplateCategory
+	preview: string
+	layout: FormLayout
+	fields: FormField[]
+	metadata: TemplateMetadata
+}
+
+export type TemplateCategory = 
+	| 'legal'
+	| 'medical'
+	| 'business'
+	| 'education'
+	| 'survey'
+	| 'contact'
+	| 'registration'
+	| 'feedback'
+	| 'custom'
+
+export interface TemplateMetadata {
+	author: string
+	version: string
+	tags: string[]
+	difficulty: 'beginner' | 'intermediate' | 'advanced'
+	estimatedTime: number // minutes
+	features: string[]
+	requirements: string[]
+}
