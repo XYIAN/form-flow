@@ -115,8 +115,12 @@ export default function CreateForm({ params }: CreateFormProps) {
 				: FieldMCP.generateDefaultOptions(fieldType),
 		}
 
+		console.log('Adding field:', newField)
+
 		// Validate field using MCP
 		const validation = FieldMCP.validateField(newField)
+		console.log('Field validation result:', validation)
+
 		if (!validation.success) {
 			const errorMessages = validation.errors?.map(e => e.message) || [
 				'Invalid field configuration',
@@ -133,6 +137,7 @@ export default function CreateForm({ params }: CreateFormProps) {
 
 		// Sanitize field data
 		const sanitizedField = FieldMCP.sanitizeFieldData(newField)
+		console.log('Sanitized field:', sanitizedField)
 
 		setFields(prev => [...prev, sanitizedField])
 		resetFieldForm()
@@ -262,7 +267,7 @@ export default function CreateForm({ params }: CreateFormProps) {
 		}
 
 		if (formFields.length === 0) {
-			setError('At least one field is required')
+			setError('At least one field is required. Please add fields to your form before creating it.')
 			return
 		}
 
@@ -271,27 +276,69 @@ export default function CreateForm({ params }: CreateFormProps) {
 			return
 		}
 
+		// Check if user and user ID exist
+		if (!user || !user.id) {
+			console.error('User object:', user)
+			setError('User session is invalid. Please log in again.')
+			return
+		}
+
+		// Debug logging
+		console.log('Creating form with:', {
+			title: formTitle,
+			description: formDescription,
+			fields: formFields,
+			userId: user.id,
+			user: user
+		})
+
+		// Additional validation logging
+		console.log('Form validation check:', {
+			hasTitle: !!formTitle.trim(),
+			titleLength: formTitle.trim().length,
+			hasDescription: !!formDescription.trim(),
+			descriptionLength: formDescription.trim().length,
+			fieldsCount: formFields.length,
+			fieldsValid: formFields.every(field => field.label && field.type),
+			userValid: !!user && !!user.id
+		})
+
 		setIsLoading(true)
 		try {
-			createForm(
+			const result = createForm(
 				{
 					title: formTitle.trim(),
 					description: formDescription.trim() || undefined,
 					fields: formFields,
 				},
-				user!.id
+				user.id
 			)
 
-			// Redirect back to dashboard to show the new form in the list
-			router.push(`/user/${resolvedParams.userid}?created=true`)
-		} catch {
-			setError('Failed to create form. Please try again.')
+			console.log('Form creation result:', result)
+
+			// Check if form creation was successful
+			if (result) {
+				// Redirect back to dashboard to show the new form in the list
+				router.push(`/user/${resolvedParams.userid}?created=true`)
+			} else {
+				setError('Form creation failed. Please check the MCP error display.')
+			}
+		} catch (error) {
+			console.error('Form creation error:', error)
+			setError(`Failed to create form: ${error instanceof Error ? error.message : 'Unknown error'}`)
 		} finally {
 			setIsLoading(false)
 		}
 	}
 
 	const handleSaveManualForm = () => {
+		console.log('Saving manual form with:', {
+			title,
+			description,
+			fields,
+			user: user,
+			userId: user?.id
+		})
 		handleSaveForm(title, description, fields)
 	}
 
@@ -348,6 +395,21 @@ export default function CreateForm({ params }: CreateFormProps) {
 
 							{activeTab === 'manual' ? (
 								<div className='flex flex-col w-full'>
+									{/* Instructions */}
+									<div className='mb-4 p-4 bg-blue-900/20 border border-blue-700/30 rounded'>
+										<div className='flex items-start gap-3'>
+											<i className='pi pi-info-circle text-blue-400 text-xl mt-0.5'></i>
+											<div className='text-blue-200 text-sm'>
+												<h4 className='font-medium mb-2'>How to create a form:</h4>
+												<ol className='list-decimal list-inside space-y-1 text-blue-100'>
+													<li>Enter a form title and description</li>
+													<li>Add at least one field using the form builder below</li>
+													<li>Click "Create Form" when you're ready</li>
+												</ol>
+											</div>
+										</div>
+									</div>
+
 									<Card className='form-flow-card mb-4'>
 										<h3 className='text-xl font-semibold text-white mb-4'>
 											Form Details
@@ -387,7 +449,7 @@ export default function CreateForm({ params }: CreateFormProps) {
 
 									<Card className='form-flow-card'>
 										<h3 className='text-xl font-semibold text-white mb-4'>
-											Form Fields
+											Form Fields {fields.length > 0 && <span className='text-sm text-gray-400'>({fields.length} field{fields.length !== 1 ? 's' : ''} added)</span>}
 										</h3>
 										{fields.length > 0 && (
 											<div className='mb-4'>
@@ -421,6 +483,15 @@ export default function CreateForm({ params }: CreateFormProps) {
 														</div>
 													</div>
 												))}
+											</div>
+										)}
+
+										{fields.length === 0 && (
+											<div className='mb-4 p-4 bg-gray-800 rounded border border-gray-600'>
+												<div className='text-center text-gray-400'>
+													<i className='pi pi-info-circle text-xl mb-2'></i>
+													<p className='text-sm'>No fields added yet. Add at least one field below to create your form.</p>
+												</div>
 											</div>
 										)}
 
@@ -583,7 +654,8 @@ export default function CreateForm({ params }: CreateFormProps) {
 											icon='pi pi-save'
 											onClick={handleSaveManualForm}
 											className='p-button-primary'
-											disabled={isLoading}
+											disabled={isLoading || fields.length === 0}
+											tooltip={fields.length === 0 ? 'Add at least one field before creating the form' : ''}
 										/>
 									</div>
 								</div>
@@ -687,6 +759,7 @@ export default function CreateForm({ params }: CreateFormProps) {
 						{/* MCP Status and Performance Panel */}
 						<div className='col-12 lg:col-4'>
 							<div className='space-y-4'>
+								{/* Temporarily disabled MCP components for debugging
 								<MCPStatusIndicator
 									operation='Field Validation'
 									status={mcpStatus}
@@ -698,7 +771,6 @@ export default function CreateForm({ params }: CreateFormProps) {
 
 								<MCPHealthDashboard />
 
-								{/* Show MCP errors and warnings from FormContext */}
 								<MCPErrorDisplay
 									errors={formErrors.map(error => ({
 										code: 'FORM_ERROR' as const,
@@ -707,6 +779,18 @@ export default function CreateForm({ params }: CreateFormProps) {
 									}))}
 									warnings={formWarnings}
 								/>
+								*/}
+								
+								{/* Simple debug info */}
+								<div className='p-4 bg-gray-800 rounded'>
+									<h4 className='text-white font-medium mb-2'>Debug Info</h4>
+									<div className='text-sm text-gray-300 space-y-1'>
+										<div>User ID: {user?.id || 'undefined'}</div>
+										<div>Fields Count: {fields.length}</div>
+										<div>Form Errors: {formErrors.length}</div>
+										<div>Form Warnings: {formWarnings.length}</div>
+									</div>
+								</div>
 							</div>
 						</div>
 					</div>

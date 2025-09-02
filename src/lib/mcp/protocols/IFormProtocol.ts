@@ -12,7 +12,7 @@ export interface IFormProtocol {
 	/**
 	 * Creates a new form with validation and business logic
 	 */
-	createForm(data: CreateFormData): MCPResult<Form>
+	createForm(data: CreateFormData, userId: string): MCPResult<Form>
 
 	/**
 	 * Validates form data before creation or update
@@ -37,7 +37,7 @@ export interface IFormProtocol {
 	/**
 	 * Generates form metadata (ID, timestamps, etc.)
 	 */
-	generateFormMetadata(data: CreateFormData): Partial<Form>
+	generateFormMetadata(userId: string): Partial<Form>
 
 	/**
 	 * Sanitizes form data for storage

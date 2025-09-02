@@ -67,7 +67,7 @@ export function FormProvider({ children }: FormProviderProps) {
 		userId: string
 	): Form | null => {
 		// Use MCP to create form with validation
-		const result = FormMCP.createForm(formData)
+		const result = FormMCP.createForm(formData, userId)
 
 		if (!result.success) {
 			// Handle errors
