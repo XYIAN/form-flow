@@ -828,6 +828,13 @@ export class FieldMCP {
 					'Agree',
 					'Strongly Agree',
 				]
+			case 'tags':
+				return ['tag1', 'tag2', 'tag3']
+			case 'select':
+			case 'radio':
+			case 'checkbox':
+			case 'multiselect':
+				return ['Option 1', 'Option 2', 'Option 3']
 			case 'country':
 				return [
 					'United States',
