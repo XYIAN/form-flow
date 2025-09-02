@@ -4,6 +4,7 @@ import './globals.css'
 import { PrimeReactProvider } from 'primereact/api'
 import { AuthProvider } from '@/context/AuthContext'
 import { FormProvider } from '@/context/FormContext'
+import MCPInitializer from '@/components/MCPInitializer'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -21,6 +22,7 @@ export default function RootLayout({
 	return (
 		<html lang='en'>
 			<body className={inter.className}>
+				<MCPInitializer />
 				<PrimeReactProvider>
 					<AuthProvider>
 						<FormProvider>{children}</FormProvider>

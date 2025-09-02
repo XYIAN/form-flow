@@ -1,0 +1,67 @@
+/* Shared transition styles */
+.fade-enter {
+	opacity: 0;
+	transform: translateY(10px);
+}
+
+.fade-enter-active {
+	opacity: 1;
+	transform: translateY(0);
+	transition: opacity 300ms ease-in-out, transform 300ms ease-in-out;
+}
+
+.fade-exit {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+.fade-exit-active {
+	opacity: 0;
+	transform: translateY(-10px);
+	transition: opacity 300ms ease-in-out, transform 300ms ease-in-out;
+}
+
+.slide-enter {
+	transform: translateX(-100%);
+}
+
+.slide-enter-active {
+	transform: translateX(0);
+	transition: transform 300ms ease-in-out;
+}
+
+.slide-exit {
+	transform: translateX(0);
+}
+
+.slide-exit-active {
+	transform: translateX(100%);
+	transition: transform 300ms ease-in-out;
+}
+
+/* Component-specific transitions */
+.component-hover {
+	transition: all 200ms ease-in-out;
+}
+
+.component-hover:hover {
+	transform: translateY(-2px);
+	box-shadow: var(--shadow-lg);
+}
+
+.layout-preview {
+	transition: all 300ms ease-in-out;
+}
+
+.layout-preview:hover {
+	transform: scale(1.02);
+}
+
+.template-card {
+	transition: all 250ms ease-in-out;
+}
+
+.template-card:hover {
+	transform: translateY(-4px);
+	box-shadow: var(--shadow-xl);
+}

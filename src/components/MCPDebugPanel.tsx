@@ -1,303 +1,236 @@
+/**
+ * MCP Debug Panel Component
+ *
+ * Real-time MCP operations monitoring and debugging interface
+ */
+
 'use client'
 
 import { useState, useEffect } from 'react'
 import { Card } from 'primereact/card'
 import { Button } from 'primereact/button'
-import { InputText } from 'primereact/inputtext'
-import { Dropdown } from 'primereact/dropdown'
-import { FieldMCP, FormMCP, MCPLogger } from '@/lib/mcp'
-import { FormField, FieldType } from '@/types'
-import { FIELD_TYPES } from '@/constants'
+import { Badge } from 'primereact/badge'
+import { ScrollPanel } from 'primereact/scrollpanel'
+import { ToggleButton } from 'primereact/togglebutton'
+import { Divider } from 'primereact/divider'
 
-interface MCPDebugPanelProps {
-	className?: string
-}
-
-interface MCPLogEntry {
-	timestamp: Date
+interface MCPOperation {
+	id: string
 	operation: string
-	level: 'info' | 'warn' | 'error' | 'debug'
-	message: string
-	data?: unknown
+	status: 'idle' | 'running' | 'success' | 'error'
+	startTime?: number
+	endTime?: number
 	executionTime?: number
+	error?: string
+	timestamp: Date
+	input?: unknown
+	output?: unknown
 }
 
-export default function MCPDebugPanel({ className = '' }: MCPDebugPanelProps) {
-	const [isVisible, setIsVisible] = useState(false)
-	const [logs, setLogs] = useState<MCPLogEntry[]>([])
-	const [testField, setTestField] = useState<FormField>({
-		id: 'test-field',
-		label: 'Test Field',
-		type: 'text',
-		required: false,
-		placeholder: 'Enter test value',
-	})
-	const [testValue, setTestValue] = useState('')
-	const [selectedFieldType, setSelectedFieldType] = useState<FieldType>('text')
+export default function MCPDebugPanel() {
+	const [operations, setOperations] = useState<MCPOperation[]>([])
+	const [isEnabled, setIsEnabled] = useState(true)
+	const [autoScroll, setAutoScroll] = useState(true)
 
-	// Use all available field types from constants
-	const fieldTypes = FIELD_TYPES
-
-	// Configure MCP Logger to capture logs
 	useEffect(() => {
-		MCPLogger.configure({
-			debug: true,
-			logLevel: 'debug',
-			enablePerformanceTracking: true,
-			onLog: (level, operation, message, data, executionTime) => {
-				setLogs(prev => [
-					...prev.slice(-19),
-					{
-						timestamp: new Date(),
-						operation,
-						level: level as 'info' | 'warn' | 'error' | 'debug',
-						message,
-						data,
-						executionTime,
-					},
-				])
-			},
-		})
-	}, [])
+		if (!isEnabled) return
 
-	const testFieldValidation = () => {
-		const updatedField = { ...testField, type: selectedFieldType }
-		setTestField(updatedField)
+		// Override console methods to capture MCP operations
+		const originalLog = console.log
+		const originalError = console.error
+		const originalWarn = console.warn
 
-		MCPLogger.debug(
-			'testFieldValidation',
-			'Testing field validation',
-			updatedField
-		)
+		console.log = (...args) => {
+			originalLog(...args)
+			if (args[0]?.includes?.('MCP:')) {
+				handleMCPLog('info', args)
+			}
+		}
 
-		const result = FieldMCP.validateField(updatedField)
-		if (result.success) {
-			MCPLogger.debug('testFieldValidation', 'Field validation passed', result)
-		} else {
-			MCPLogger.error(
-				'testFieldValidation',
-				result.errors?.[0] || new Error('Validation failed')
-			)
+		console.error = (...args) => {
+			originalError(...args)
+			if (args[0]?.includes?.('MCP')) {
+				handleMCPLog('error', args)
+			}
+		}
+
+		console.warn = (...args) => {
+			originalWarn(...args)
+			if (args[0]?.includes?.('MCP')) {
+				handleMCPLog('warn', args)
+			}
+		}
+
+		return () => {
+			console.log = originalLog
+			console.error = originalError
+			console.warn = originalWarn
+		}
+	}, [isEnabled])
+
+	const handleMCPLog = (level: string, args: unknown[]) => {
+		const message = args[0] as string
+		const operation = extractOperation(message)
+
+		if (operation) {
+			const newOperation: MCPOperation = {
+				id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+				operation,
+				status:
+					level === 'error'
+						? 'error'
+						: level === 'warn'
+						? 'running'
+						: 'success',
+				timestamp: new Date(),
+				input: args[1],
+				output: args[2],
+			}
+
+			setOperations(prev => {
+				const updated = [newOperation, ...prev].slice(0, 50) // Keep last 50 operations
+				return updated
+			})
 		}
 	}
 
-	const testFieldValueValidation = () => {
-		MCPLogger.debug(
-			'testFieldValueValidation',
-			'Testing field value validation',
-			{ field: testField, value: testValue }
-		)
-
-		const result = FieldMCP.validateFieldValue(testField, testValue)
-		if (result.success) {
-			MCPLogger.debug(
-				'testFieldValueValidation',
-				'Field value validation passed',
-				result
-			)
-		} else {
-			MCPLogger.error(
-				'testFieldValueValidation',
-				result.errors?.[0] || new Error('Validation failed')
-			)
-		}
+	const extractOperation = (message: string): string | null => {
+		const match = message.match(/MCP:\s*([^✅❌]+)/)
+		return match ? match[1].trim() : null
 	}
 
-	const testFieldRendering = () => {
-		MCPLogger.debug('testFieldRendering', 'Testing field rendering', testField)
-
-		const result = FieldMCP.render({
-			field: testField,
-			control: {
-				[testField.id]: {
-					value: testValue,
-					onChange: (value: unknown) => setTestValue(String(value)),
-					onBlur: () => {},
-				},
-			},
-			errors: {},
-		})
-
-		if (result.success) {
-			MCPLogger.debug(
-				'testFieldRendering',
-				'Field rendering successful',
-				result.metadata
-			)
-		} else {
-			MCPLogger.error(
-				'testFieldRendering',
-				result.errors?.[0] || new Error('Rendering failed')
-			)
-		}
-	}
-
-	const testFormCreation = () => {
-		MCPLogger.debug('testFormCreation', 'Testing form creation', {
-			title: 'Test Form',
-			fields: [testField],
-		})
-
-		const result = FormMCP.createForm({
-			title: 'Test Form',
-			description: 'A test form created from MCP Debug Panel',
-			fields: [testField],
-		}, 'test-user-id')
-
-		if (result.success) {
-			MCPLogger.debug(
-				'testFormCreation',
-				'Form creation successful',
-				result.data
-			)
-		} else {
-			MCPLogger.error(
-				'testFormCreation',
-				result.errors?.[0] || new Error('Form creation failed')
-			)
-		}
-	}
-
-	const clearLogs = () => {
-		setLogs([])
-		MCPLogger.debug('clearLogs', 'Debug logs cleared')
-	}
-
-	const getLogLevelColor = (level: string) => {
-		switch (level) {
+	const getStatusIcon = (status: string) => {
+		switch (status) {
+			case 'success':
+				return '✅'
 			case 'error':
-				return 'text-red-400'
-			case 'warn':
-				return 'text-yellow-400'
-			case 'info':
-				return 'text-blue-400'
-			case 'debug':
-				return 'text-gray-400'
+				return '❌'
+			case 'running':
+				return '⏳'
 			default:
-				return 'text-white'
+				return '⏸️'
 		}
 	}
 
-	// If not visible, show a button to open the panel
-	if (!isVisible) {
-		return (
-			<Button
-				icon='pi pi-bug'
-				label='MCP Debug'
-				className={`p-button-outlined p-button-sm ${className}`}
-				onClick={() => setIsVisible(true)}
-			/>
-		)
+	const getStatusColor = (status: string) => {
+		switch (status) {
+			case 'success':
+				return 'success'
+			case 'error':
+				return 'danger'
+			case 'running':
+				return 'warning'
+			default:
+				return 'info'
+		}
+	}
+
+	const clearOperations = () => {
+		setOperations([])
+	}
+
+	const formatTimestamp = (date: Date) => {
+		return date.toLocaleTimeString()
 	}
 
 	return (
-		<Card className={`form-flow-card ${className}`}>
-			<div className='flex justify-between items-center mb-4'>
-				<h3 className='text-xl font-semibold text-white'>MCP Debug Panel</h3>
-				<Button
-					icon='pi pi-times'
-					className='p-button-text p-button-sm'
-					onClick={() => setIsVisible(false)}
-				/>
-			</div>
-
-			<div className='grid'>
-				<div className='col-12 md:col-6'>
-					<h4 className='text-lg font-medium text-white mb-3'>Field Testing</h4>
-
-					<div className='field mb-3'>
-						<label className='block text-sm font-medium text-gray-300 mb-2'>
-							Field Type
-						</label>
-						<Dropdown
-							value={selectedFieldType}
-							options={fieldTypes}
-							onChange={e => setSelectedFieldType(e.value)}
-							optionLabel='label'
-							optionValue='value'
-							className='w-full'
+		<Card title='🔧 MCP Debug Panel' className='w-full'>
+			<div className='space-y-4'>
+				{/* Controls */}
+				<div className='flex justify-between items-center'>
+					<div className='flex gap-2'>
+						<ToggleButton
+							checked={isEnabled}
+							onChange={e => setIsEnabled(e.value)}
+							onLabel='Enabled'
+							offLabel='Disabled'
+							className='p-button-sm'
+						/>
+						<ToggleButton
+							checked={autoScroll}
+							onChange={e => setAutoScroll(e.value)}
+							onLabel='Auto Scroll'
+							offLabel='Manual'
+							className='p-button-sm'
 						/>
 					</div>
-
-					<div className='field mb-3'>
-						<label className='block text-sm font-medium text-gray-300 mb-2'>
-							Test Value
-						</label>
-						<InputText
-							value={testValue}
-							onChange={e => setTestValue(e.target.value)}
-							placeholder='Enter test value'
-							className='w-full'
-						/>
-					</div>
-
-					<div className='flex flex-wrap gap-2 mb-4'>
-						<Button
-							label='Test Field Validation'
-							icon='pi pi-check'
-							className='p-button-sm p-button-outlined'
-							onClick={testFieldValidation}
-						/>
-						<Button
-							label='Test Value Validation'
-							icon='pi pi-check-circle'
-							className='p-button-sm p-button-outlined'
-							onClick={testFieldValueValidation}
-						/>
-						<Button
-							label='Test Rendering'
-							icon='pi pi-eye'
-							className='p-button-sm p-button-outlined'
-							onClick={testFieldRendering}
-						/>
-						<Button
-							label='Test Form Creation'
-							icon='pi pi-plus'
-							className='p-button-sm p-button-outlined'
-							onClick={testFormCreation}
-						/>
-					</div>
+					<Button
+						label='Clear'
+						icon='pi pi-trash'
+						onClick={clearOperations}
+						className='p-button-sm p-button-outlined'
+					/>
 				</div>
 
-				<div className='col-12 md:col-6'>
-					<div className='flex justify-between items-center mb-3'>
-						<h4 className='text-lg font-medium text-white'>MCP Logs</h4>
-						<Button
-							label='Clear'
-							icon='pi pi-trash'
-							className='p-button-sm p-button-outlined p-button-danger'
-							onClick={clearLogs}
-						/>
-					</div>
+				<Divider />
 
-					<div className='bg-gray-900 rounded p-3 h-64 overflow-y-auto'>
-						{logs.length === 0 ? (
-							<p className='text-gray-400 text-sm'>
-								No MCP operations logged yet...
-							</p>
+				{/* Operations List */}
+				<div className='h-96'>
+					<ScrollPanel style={{ height: '100%' }}>
+						{operations.length === 0 ? (
+							<div className='text-center text-gray-500 py-8'>
+								<i className='pi pi-info-circle text-2xl mb-2'></i>
+								<p>No MCP operations detected</p>
+								<p className='text-sm'>Enable debug mode to see operations</p>
+							</div>
 						) : (
-							logs.map((log, index) => (
-								<div key={index} className='mb-2 text-xs'>
-									<div className='flex items-center gap-2'>
-										<span className='text-gray-500'>
-											{log.timestamp.toLocaleTimeString()}
-										</span>
-										<span
-											className={`font-medium ${getLogLevelColor(log.level)}`}
-										>
-											[{log.level.toUpperCase()}]
-										</span>
-										<span className='text-blue-300'>{log.operation}</span>
-									</div>
-									<div className='text-gray-300 ml-4'>{log.message}</div>
-									{log.executionTime && (
-										<div className='text-gray-500 ml-4'>
-											⏱️ {log.executionTime.toFixed(2)}ms
+							<div className='space-y-2'>
+								{operations.map(op => (
+									<div
+										key={op.id}
+										className='p-3 bg-gray-800 rounded border-l-4 border-blue-500'
+									>
+										<div className='flex justify-between items-start'>
+											<div className='flex-1'>
+												<div className='flex items-center gap-2 mb-1'>
+													<span className='text-lg'>
+														{getStatusIcon(op.status)}
+													</span>
+													<span className='font-medium text-white'>
+														{op.operation}
+													</span>
+													<Badge
+														value={op.status}
+														severity={getStatusColor(op.status)}
+														className='text-xs'
+													/>
+												</div>
+												<div className='text-sm text-gray-400'>
+													{formatTimestamp(op.timestamp)}
+												</div>
+												{op.error && (
+													<div className='text-sm text-red-400 mt-1'>
+														Error: {op.error}
+													</div>
+												)}
+											</div>
 										</div>
-									)}
-								</div>
-							))
+									</div>
+								))}
+							</div>
 						)}
+					</ScrollPanel>
+				</div>
+
+				{/* Stats */}
+				<div className='grid grid-cols-3 gap-4 text-center'>
+					<div className='p-2 bg-gray-800 rounded'>
+						<div className='text-lg font-bold text-green-400'>
+							{operations.filter(op => op.status === 'success').length}
+						</div>
+						<div className='text-xs text-gray-400'>Success</div>
+					</div>
+					<div className='p-2 bg-gray-800 rounded'>
+						<div className='text-lg font-bold text-red-400'>
+							{operations.filter(op => op.status === 'error').length}
+						</div>
+						<div className='text-xs text-gray-400'>Errors</div>
+					</div>
+					<div className='p-2 bg-gray-800 rounded'>
+						<div className='text-lg font-bold text-blue-400'>
+							{operations.length}
+						</div>
+						<div className='text-xs text-gray-400'>Total</div>
 					</div>
 				</div>
 			</div>

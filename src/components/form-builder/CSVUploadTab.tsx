@@ -113,12 +113,15 @@ export default function CSVUploadTab({
 			if (generationResult.success && generationResult.data) {
 				console.log('✅ Form generation successful')
 				console.log('📊 Generated fields:', generationResult.data.fields.length)
-				console.log('📋 Field details:', generationResult.data.fields.map(f => ({
-					id: f.id,
-					label: f.label,
-					type: f.type,
-					required: f.required
-				})))
+				console.log(
+					'📋 Field details:',
+					generationResult.data.fields.map(f => ({
+						id: f.id,
+						label: f.label,
+						type: f.type,
+						required: f.required,
+					}))
+				)
 				setGeneratedFields(generationResult.data.fields)
 				onMcpStatusChange('success')
 				onMcpExecutionTime(generationResult.metadata?.executionTime || 0)
@@ -236,7 +239,9 @@ export default function CSVUploadTab({
 							label={csvProcessing ? 'Processing CSV...' : 'Upload CSV'}
 							icon={csvProcessing ? 'pi pi-spin pi-spinner' : 'pi pi-upload'}
 							onClick={() => {
-								// This will be handled by the FileUpload component
+								console.log(
+									'📁 CSV Upload: Split button clicked - ready for file selection'
+								)
 							}}
 							model={uploadButtonItems}
 							className='w-full'
@@ -250,7 +255,15 @@ export default function CSVUploadTab({
 							chooseLabel='Choose CSV File'
 							className='mt-2'
 							disabled={csvProcessing}
+							onSelect={e => {
+								console.log('📁 CSV Upload: File selected for upload')
+								console.log('📄 Selected file:', e.files[0]?.name)
+							}}
 						/>
+						<div className='mt-2 text-xs text-gray-400'>
+							💡 Tip: Use the dropdown to download templates, or upload your own
+							CSV file
+						</div>
 					</div>
 
 					{/* Form Details */}

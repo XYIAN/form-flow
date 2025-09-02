@@ -12,14 +12,16 @@ import { Message } from 'primereact/message'
 import { useAuth } from '@/context/AuthContext'
 import { useForms } from '@/context/FormContext'
 import { FormField } from '@/types'
-import { FieldMCP, MCPLogger } from '@/lib/mcp'
+// import { FieldMCP, MCPLogger } from '@/lib/mcp' // Available for future use
 import Navigation from '@/components/Navigation'
 import FormBuilderTabs from '@/components/form-builder/FormBuilderTabs'
 import MCPStatusIndicator from '@/components/MCPStatusIndicator'
 import MCPErrorDisplay from '@/components/MCPErrorDisplay'
 import MCPPerformanceDisplay from '@/components/MCPPerformanceDisplay'
 import MCPHealthDashboard from '@/components/MCPHealthDashboard'
-import FieldPreview from '@/components/FieldPreview'
+import MCPDebugPanel from '@/components/MCPDebugPanel'
+import ConsoleLogViewer from '@/components/ConsoleLogViewer'
+import MCPStatusBanner from '@/components/MCPStatusBanner'
 
 interface CreateFormProps {
 	params: Promise<{
@@ -59,12 +61,6 @@ export default function CreateForm({ params }: CreateFormProps) {
 	const [mcpExecutionTime, setMcpExecutionTime] = useState<number>()
 	const [mcpError, setMcpError] = useState<string>('')
 
-	// Resolve params
-
-	// UI state
-	const [isLoading, setIsLoading] = useState(false)
-	const [error, setError] = useState('')
-
 	// Resolve params promise
 	useEffect(() => {
 		params.then(setResolvedParams)
@@ -80,55 +76,16 @@ export default function CreateForm({ params }: CreateFormProps) {
 
 	// Field management
 	const handleAddField = (field: FormField) => {
+		console.log('➕ Form Creation: Adding field to form...')
+		console.log('📝 Field details:', field)
 		setFields(prev => [...prev, field])
-	}, [isAuthenticated, user, resolvedParams, router])
-
-	const handleAddField = () => {
-		if (!fieldLabel.trim()) {
-			setError('Field label is required')
-			return
-		}
-
-		// Create field object
-		const newField: FormField = {
-			id: generateId(),
-			label: fieldLabel.trim(),
-			type: fieldType,
-			required: fieldRequired,
-			placeholder: fieldPlaceholder.trim() || undefined,
-			options: fieldOptions.trim()
-				? fieldOptions.split(',').map(opt => opt.trim())
-				: FieldMCP.generateDefaultOptions(fieldType),
-		}
-
-		console.log('Adding field:', newField)
-
-		// Validate field using MCP
-		const validation = FieldMCP.validateField(newField)
-		console.log('Field validation result:', validation)
-
-		if (!validation.success) {
-			const errorMessages = validation.errors?.map(e => e.message) || [
-				'Invalid field configuration',
-			]
-			setError(errorMessages.join(', '))
-			MCPLogger.error(
-				'handleAddField',
-				validation.errors?.[0] || new Error('Field validation failed')
-			)
-			return
-		}
-
-		// Sanitize field data
-		const sanitizedField = FieldMCP.sanitizeFieldData(newField)
-		console.log('Sanitized field:', sanitizedField)
-
-		setFields(prev => [...prev, sanitizedField])
-		resetFieldForm()
 		setError('')
 	}
 
 	const handleUpdateField = (fieldId: string, updates: Partial<FormField>) => {
+		console.log('✏️ Form Creation: Updating field...')
+		console.log('🆔 Field ID:', fieldId)
+		console.log('📝 Updates:', updates)
 		setFields(prev =>
 			prev.map(f => (f.id === fieldId ? { ...f, ...updates } : f))
 		)
@@ -136,187 +93,124 @@ export default function CreateForm({ params }: CreateFormProps) {
 	}
 
 	const handleDeleteField = (fieldId: string) => {
+		console.log('🗑️ Form Creation: Deleting field...')
+		console.log('🆔 Field ID:', fieldId)
 		setFields(prev => prev.filter(f => f.id !== fieldId))
 	}
 
 	// Form saving
 	const handleSaveForm = () => {
+		console.log('💾 Form Creation: Starting manual form save...')
+		console.log('📝 Form title:', title.trim())
+		console.log('📊 Field count:', fields.length)
+		console.log('👤 User ID:', user?.id)
+
 		if (!title.trim()) {
+			console.error('❌ Validation failed: Form title is required')
 			setError('Form title is required')
 			return
 		}
 
 		if (fields.length === 0) {
+			console.error('❌ Validation failed: At least one field is required')
 			setError('At least one field is required')
 			return
 		}
 
 		if (!resolvedParams) {
+			console.error('❌ Validation failed: Invalid user session')
 			setError('Invalid user session')
 			return
 		}
 
+		console.log('✅ Validation passed, creating form...')
 		setIsLoading(true)
 
-		const result = createForm(
-			{
-				title: title.trim(),
-				description: description.trim() || undefined,
-				fields: fields,
-			},
-			user!.id
-		)
+		const formData = {
+			title: title.trim(),
+			description: description.trim() || undefined,
+			fields: fields,
+		}
+
+		console.log('📋 Form data to create:', formData)
+		const result = createForm(formData, user!.id)
 
 		if (result) {
+			console.log('✅ Form created successfully, redirecting...')
 			router.push(`/user/${resolvedParams.userid}?created=true`)
 		} else {
+			console.error('❌ Form creation failed')
 			setError('Failed to create form. Please try again.')
 		}
 
 		setIsLoading(false)
-	const resetFieldForm = () => {
-		setEditingField(null)
-		setFieldLabel('')
-		setFieldType('text')
-		setFieldRequired(false)
-		setFieldPlaceholder('')
-		setFieldOptions('')
-		setSelectedCategory('basic')
-	}
-
-	const handleCsvUpload = (event: { files: File[] }) => {
-		const file = event.files[0]
-		if (!file) return
-
-		const reader = new FileReader()
-		reader.onload = e => {
-			const content = e.target?.result as string
-			const lines = content.split('\n')
-			if (lines.length > 0) {
-				const headers = lines[0]
-					.split(',')
-					.map(h => h.trim())
-					.filter(h => h)
-				setCsvHeaders(headers)
-			}
-		}
-		reader.readAsText(file)
 	}
 
 	const handleCreateFromCsv = () => {
+		console.log('💾 Form Creation: Starting CSV form save...')
+		console.log('📝 Form title:', csvTitle.trim())
+		console.log('📊 Generated field count:', generatedFields.length)
+		console.log('👤 User ID:', user?.id)
+
 		if (!csvTitle.trim()) {
+			console.error('❌ Validation failed: Form title is required')
 			setError('Form title is required')
 			return
 		}
 
-		if (fields.length === 0) {
+		if (generatedFields.length === 0) {
+			console.error(
+				'❌ Validation failed: Please upload and process a CSV file first'
+			)
 			setError('Please upload and process a CSV file first')
 			return
 		}
 
-		handleSaveForm(csvTitle, csvDescription, fields)
-	}
-
-	const handleSaveForm = (
-		formTitle: string,
-		formDescription: string,
-		formFields: FormField[]
-	) => {
-		if (!formTitle.trim()) {
-			setError('Form title is required')
-			return
-		}
-
-		if (formFields.length === 0) {
-			setError('At least one field is required. Please add fields to your form before creating it.')
-			return
-		}
-
 		if (!resolvedParams) {
+			console.error('❌ Validation failed: Invalid user session')
 			setError('Invalid user session')
 			return
 		}
 
+		console.log('✅ Validation passed, creating form from CSV...')
 		setIsLoading(true)
 
-		const result = createForm(
-			{
-				title: csvTitle.trim(),
-				description: csvDescription.trim() || undefined,
-				fields: generatedFields,
-			},
-			user!.id
-		)
-		// Check if user and user ID exist
-		if (!user || !user.id) {
-			console.error('User object:', user)
-			setError('User session is invalid. Please log in again.')
-			return
+		const formData = {
+			title: csvTitle.trim(),
+			description: csvDescription.trim() || undefined,
+			fields: generatedFields,
 		}
 
-		// Debug logging
-		console.log('Creating form with:', {
-			title: formTitle,
-			description: formDescription,
-			fields: formFields,
-			userId: user.id,
-			user: user
-		})
-
-		// Additional validation logging
-		console.log('Form validation check:', {
-			hasTitle: !!formTitle.trim(),
-			titleLength: formTitle.trim().length,
-			hasDescription: !!formDescription.trim(),
-			descriptionLength: formDescription.trim().length,
-			fieldsCount: formFields.length,
-			fieldsValid: formFields.every(field => field.label && field.type),
-			userValid: !!user && !!user.id
-		})
-
-		setIsLoading(true)
-		try {
-			createForm(
-				{
-					title: formTitle.trim(),
-					description: formDescription.trim() || undefined,
-					fields: formFields,
-				},
-				user!.id
-			)
+		console.log('📋 CSV form data to create:', formData)
+		const result = createForm(formData, user!.id)
 
 		if (result) {
-			// Redirect back to dashboard to show the new form in the list
+			console.log('✅ CSV form created successfully, redirecting...')
 			router.push(`/user/${resolvedParams.userid}?created=true`)
-		} catch {
+		} else {
+			console.error('❌ CSV form creation failed')
 			setError('Failed to create form. Please try again.')
-		} finally {
-			setIsLoading(false)
 		}
+
+		setIsLoading(false)
 	}
 
 	// MCP status handlers
 	const handleMcpStatusChange = (
 		status: 'idle' | 'running' | 'success' | 'error'
 	) => {
+		console.log('🔧 MCP Status Change:', status)
 		setMcpStatus(status)
 	}
 
 	const handleMcpExecutionTime = (time: number) => {
+		console.log('⏱️ MCP Execution Time:', time, 'ms')
 		setMcpExecutionTime(time)
 	}
 
 	const handleMcpError = (error: string) => {
+		console.error('❌ MCP Error:', error)
 		setMcpError(error)
-	const handleSaveManualForm = () => {
-		console.log('Saving manual form with:', {
-			title,
-			description,
-			fields,
-			user: user,
-			userId: user?.id
-		})
-		handleSaveForm(title, description, fields)
 	}
 
 	if (!isAuthenticated || !user || !resolvedParams) {
@@ -329,44 +223,12 @@ export default function CreateForm({ params }: CreateFormProps) {
 
 			<div className='p-4'>
 				<div className='w-full max-w-7xl mx-auto'>
+					{/* MCP Status Banner */}
+					<MCPStatusBanner className='mb-4' />
+
 					<div className='grid'>
 						{/* Main Form Builder */}
 						<div className='col-12 lg:col-8'>
-							<div className='flex justify-between items-center mb-4'>
-								<h2 className='text-2xl font-bold text-white'>
-									Create New Form
-								</h2>
-								<Button
-									label='Back to Dashboard'
-									icon='pi pi-arrow-left'
-									className='p-button-outlined p-button-secondary'
-									onClick={() => router.push(`/user/${resolvedParams.userid}`)}
-								/>
-							</div>
-
-							<div className='flex gap-4 mb-4'>
-								<Button
-									label='Manual Creation'
-									icon='pi pi-pencil'
-									className={
-										activeTab === 'manual'
-											? 'p-button-primary'
-											: 'p-button-outlined'
-									}
-									onClick={() => setActiveTab('manual')}
-								/>
-								<Button
-									label='CSV Upload'
-									icon='pi pi-upload'
-									className={
-										activeTab === 'csv'
-											? 'p-button-primary'
-											: 'p-button-outlined'
-									}
-									onClick={() => setActiveTab('csv')}
-								/>
-							</div>
-
 							{error && (
 								<Message severity='error' text={error} className='mb-4' />
 							)}
@@ -401,501 +263,11 @@ export default function CreateForm({ params }: CreateFormProps) {
 								onMcpExecutionTime={handleMcpExecutionTime}
 								onMcpError={handleMcpError}
 							/>
-							{activeTab === 'manual' ? (
-								<div className='flex flex-col w-full'>
-									{/* Instructions */}
-									<div className='mb-4 p-4 bg-blue-900/20 border border-blue-700/30 rounded'>
-										<div className='flex items-start gap-3'>
-											<i className='pi pi-info-circle text-blue-400 text-xl mt-0.5'></i>
-											<div className='text-blue-200 text-sm'>
-												<h4 className='font-medium mb-2'>How to create a form:</h4>
-												<ol className='list-decimal list-inside space-y-1 text-blue-100'>
-													<li>Enter a form title and description</li>
-													<li>Add at least one field using the form builder below</li>
-													<li>Click &quot;Create Form&quot; when you&apos;re ready</li>
-												</ol>
-											</div>
-										</div>
-									</div>
-
-									<Card className='form-flow-card mb-4'>
-										<h3 className='text-xl font-semibold text-white mb-4'>
-											Form Details
-										</h3>
-										<div className='field mb-3'>
-											<label
-												htmlFor='title'
-												className='block text-sm font-medium text-gray-300 mb-2'
-											>
-												Form Title *
-											</label>
-											<InputText
-												id='title'
-												value={title}
-												onChange={e => setTitle(e.target.value)}
-												placeholder='Enter form title'
-												className='w-full'
-											/>
-										</div>
-										<div className='field mb-3'>
-											<label
-												htmlFor='description'
-												className='block text-sm font-medium text-gray-300 mb-2'
-											>
-												Description
-											</label>
-											<InputTextarea
-												id='description'
-												value={description}
-												onChange={e => setDescription(e.target.value)}
-												placeholder='Enter form description (optional)'
-												rows={3}
-												className='w-full'
-											/>
-										</div>
-									</Card>
-
-									<Card className='form-flow-card'>
-										<h3 className='text-xl font-semibold text-white mb-4'>
-											Form Fields {fields.length > 0 && <span className='text-sm text-gray-400'>({fields.length} field{fields.length !== 1 ? 's' : ''} added)</span>}
-										</h3>
-										{fields.length > 0 && (
-											<div className='mb-4'>
-												{fields.map((field, index) => (
-													<div
-														key={field.id}
-														className='flex justify-between items-center p-3 bg-gray-800 rounded mb-2'
-													>
-														<div>
-															<span className='font-medium text-white'>
-																{index + 1}. {field.label}
-															</span>
-															<span className='ml-2 text-sm text-gray-400'>
-																({field.type})
-															</span>
-															{field.required && (
-																<span className='ml-2 text-red-400'>*</span>
-															)}
-														</div>
-														<div className='flex gap-2'>
-															<Button
-																icon='pi pi-pencil'
-																className='p-button-sm p-button-outlined'
-																onClick={() => handleEditField(field)}
-															/>
-															<Button
-																icon='pi pi-trash'
-																className='p-button-sm p-button-outlined p-button-danger'
-																onClick={() => handleDeleteField(field.id)}
-															/>
-														</div>
-													</div>
-												))}
-											</div>
-										)}
-
-										{fields.length === 0 && (
-											<div className='mb-4 p-4 bg-gray-800 rounded border border-gray-600'>
-												<div className='text-center text-gray-400'>
-													<i className='pi pi-info-circle text-xl mb-2'></i>
-													<p className='text-sm'>No fields added yet. Add at least one field below to create your form.</p>
-												</div>
-											</div>
-										)}
-
-										<div className='border-t border-gray-700 pt-4'>
-											<h4 className='text-lg font-medium text-white mb-3'>
-												{editingField ? 'Edit Field' : 'Add New Field'}
-											</h4>
-											<div className='flex flex-wrap gap-4'>
-												<div className='w-full md:w-1/2'>
-													<label className='block text-sm font-medium text-gray-300 mb-2'>
-														Field Label *
-													</label>
-													<InputText
-														value={fieldLabel}
-														onChange={e => setFieldLabel(e.target.value)}
-														placeholder='Enter field label'
-														className='w-full'
-													/>
-												</div>
-												<div className='w-full md:w-1/2'>
-													<label className='block text-sm font-medium text-gray-300 mb-2'>
-														Field Category
-													</label>
-													<Dropdown
-														value={selectedCategory}
-														options={FIELD_CATEGORIES}
-														onChange={e => {
-															setSelectedCategory(e.value)
-															// Reset field type when category changes
-															const categoryTypes = FIELD_TYPES.filter(
-																ft => ft.category === e.value
-															)
-															if (categoryTypes.length > 0) {
-																setFieldType(categoryTypes[0].value)
-															}
-														}}
-														optionLabel='name'
-														optionValue='id'
-														placeholder='Select category'
-														className='w-full'
-													/>
-												</div>
-												<div className='w-full md:w-1/2'>
-													<label className='block text-sm font-medium text-gray-300 mb-2'>
-														Field Type
-													</label>
-													<Dropdown
-														value={fieldType}
-														options={FIELD_TYPES.filter(
-															ft => ft.category === selectedCategory
-														)}
-														onChange={e => setFieldType(e.value)}
-														optionLabel='label'
-														optionValue='value'
-														placeholder='Select field type'
-														className='w-full'
-													/>
-												</div>
-												<div className='w-full md:w-1/2'>
-													<label className='block text-sm font-medium text-gray-300 mb-2'>
-														Placeholder
-													</label>
-													<InputText
-														value={fieldPlaceholder}
-														onChange={e => setFieldPlaceholder(e.target.value)}
-														placeholder='Enter placeholder text'
-														className='w-full'
-													/>
-												</div>
-												<div className='w-full md:w-1/2'>
-													<label className='block text-sm font-medium text-gray-300 mb-2'>
-														Required
-													</label>
-													<div className='flex items-center'>
-														<input
-															type='checkbox'
-															checked={fieldRequired}
-															onChange={e => setFieldRequired(e.target.checked)}
-															className='mr-2'
-														/>
-														<span className='text-gray-300'>
-															Make this field required
-														</span>
-													</div>
-												</div>
-												{(fieldType === 'select' ||
-													fieldType === 'radio' ||
-													fieldType === 'checkbox' ||
-													fieldType === 'yesno') && (
-													<div className='w-full'>
-														<label className='block text-sm font-medium text-gray-300 mb-2'>
-															{fieldType === 'yesno'
-																? 'Yes/No options (auto-filled)'
-																: 'Options (comma-separated)'}
-														</label>
-														<InputText
-															value={fieldOptions}
-															onChange={e => setFieldOptions(e.target.value)}
-															placeholder={
-																fieldType === 'yesno'
-																	? `Yes, No (auto-filled)`
-																	: 'Option 1, Option 2, Option 3'
-															}
-															className='w-full'
-															disabled={fieldType === 'yesno'}
-														/>
-													</div>
-												)}
-											</div>
-
-											<div className='flex gap-2 mt-4'>
-												{editingField ? (
-													<>
-														<Button
-															label='Update Field'
-															icon='pi pi-check'
-															onClick={handleUpdateField}
-															className='p-button-primary'
-														/>
-														<Button
-															label='Cancel'
-															icon='pi pi-times'
-															className='p-button-outlined'
-															onClick={resetFieldForm}
-														/>
-													</>
-												) : (
-													<Button
-														label='Add Field'
-														icon='pi pi-plus'
-														onClick={handleAddField}
-														className='p-button-primary'
-													/>
-												)}
-											</div>
-										</div>
-									</Card>
-
-									{/* Field Preview */}
-									{(fieldLabel || editingField) && (
-										<FieldPreview
-											field={{
-												id: editingField?.id || 'preview-field',
-												label:
-													fieldLabel || editingField?.label || 'Preview Field',
-												type: fieldType,
-												required: fieldRequired,
-												placeholder: fieldPlaceholder || undefined,
-												options: fieldOptions.trim()
-													? fieldOptions.split(',').map(opt => opt.trim())
-													: FieldMCP.generateDefaultOptions(fieldType),
-											}}
-											className='mt-4'
-										/>
-									)}
-
-									<div className='flex justify-end mt-4'>
-										<Button
-											label='Create Form'
-											icon='pi pi-save'
-											onClick={handleSaveManualForm}
-											className='p-button-primary'
-											disabled={isLoading || fields.length === 0}
-											tooltip={fields.length === 0 ? 'Add at least one field before creating the form' : ''}
-										/>
-									</div>
-								</div>
-							) : activeTab === 'csv' ? (
-								<Card className='form-flow-card'>
-									<h3 className='text-xl font-semibold text-white mb-4'>
-										Create Form from CSV
-									</h3>
-
-									<div className='field mb-4'>
-										<label className='block text-sm font-medium text-gray-300 mb-2'>
-											Upload CSV File
-										</label>
-										<FileUpload
-											mode='basic'
-											name='csv'
-											accept='.csv'
-											maxFileSize={1000000}
-											customUpload
-											uploadHandler={handleCsvUpload}
-											auto
-											chooseLabel='Choose CSV File'
-											className='w-full'
-										/>
-										<small className='text-gray-400'>
-											Upload a CSV file with headers. The first row will be used
-											as field labels.
-										</small>
-									</div>
-
-									{csvHeaders.length > 0 && (
-										<>
-											<div className='field mb-3'>
-												<label
-													htmlFor='csvTitle'
-													className='block text-sm font-medium text-gray-300 mb-2'
-												>
-													Form Title *
-												</label>
-												<InputText
-													id='csvTitle'
-													value={csvTitle}
-													onChange={e => setCsvTitle(e.target.value)}
-													placeholder='Enter form title'
-													className='w-full'
-												/>
-											</div>
-
-											<div className='field mb-3'>
-												<label
-													htmlFor='csvDescription'
-													className='block text-sm font-medium text-gray-300 mb-2'
-												>
-													Description
-												</label>
-												<InputTextarea
-													id='csvDescription'
-													value={csvDescription}
-													onChange={e => setCsvDescription(e.target.value)}
-													placeholder='Enter form description (optional)'
-													rows={3}
-													className='w-full'
-												/>
-											</div>
-
-											<div className='mb-4'>
-												<h4 className='text-lg font-medium text-white mb-2'>
-													Detected Fields:
-												</h4>
-												<div className='grid'>
-													{csvHeaders.map((header, index) => (
-														<div
-															key={index}
-															className='col-12 md:col-6 lg:col-4'
-														>
-															<div className='p-3 bg-gray-800 rounded'>
-																<span className='text-white'>
-																	{index + 1}. {header}
-																</span>
-															</div>
-														</div>
-													))}
-												</div>
-											</div>
-
-											{/* Generated Fields Preview */}
-											{fields.length > 0 && (
-												<div className='mb-4'>
-													<h4 className='text-lg font-medium text-white mb-2'>
-														Generated Form Fields:
-													</h4>
-													<div className='space-y-2'>
-														{fields.map((field, index) => (
-															<div
-																key={field.id}
-																className='p-3 bg-gray-800 rounded flex justify-between items-center'
-															>
-																<div>
-																	<span className='font-medium text-white'>
-																		{index + 1}. {field.label}
-																	</span>
-																	<span className='ml-2 text-sm text-gray-400'>
-																		({field.type})
-																	</span>
-																	{field.required && (
-																		<span className='ml-2 text-red-400'>*</span>
-																	)}
-																</div>
-																<div className='text-sm text-gray-300'>
-																	{field.placeholder && (
-																		<span>
-																			Placeholder: {field.placeholder}
-																		</span>
-																	)}
-																	{field.options &&
-																		field.options.length > 0 && (
-																			<span className='ml-2'>
-																				Options: {field.options.length}
-																			</span>
-																		)}
-																</div>
-															</div>
-														))}
-													</div>
-												</div>
-											)}
-
-											{/* CSV Analysis Results */}
-											{/* The following block was removed as per the edit hint */}
-											{/*
-											{csvAnalysis && (
-												<div className='mb-4'>
-													<h4 className='text-lg font-medium text-white mb-2'>
-														Data Analysis:
-													</h4>
-													<div className='grid'>
-														<div className='col-12 md:col-6'>
-															<div className='p-3 bg-gray-800 rounded'>
-																<div className='text-sm text-gray-300 mb-1'>
-																	Data Quality
-																</div>
-																<div className='text-white'>
-																	Completeness:{' '}
-																	{Math.round(
-																		(
-																			csvAnalysis as {
-																				quality: { completeness: number }
-																			}
-																		).quality.completeness * 100
-																	)}
-																	%
-																</div>
-																<div className='text-white'>
-																	Consistency:{' '}
-																	{Math.round(
-																		(
-																			csvAnalysis as {
-																				quality: { consistency: number }
-																			}
-																		).quality.consistency * 100
-																	)}
-																	%
-																</div>
-															</div>
-														</div>
-														<div className='col-12 md:col-6'>
-															<div className='p-3 bg-gray-800 rounded'>
-																<div className='text-sm text-gray-300 mb-1'>
-																	Field Types Detected
-																</div>
-																<div className='text-white'>
-																	{Object.entries(
-																		(
-																			csvAnalysis as {
-																				dataTypes: Array<{
-																					detectedType: string
-																				}>
-																			}
-																		).dataTypes.reduce(
-																			(
-																				acc: Record<string, number>,
-																				dt: { detectedType: string }
-																			) => {
-																				acc[dt.detectedType] =
-																					(acc[dt.detectedType] || 0) + 1
-																				return acc
-																			},
-																			{}
-																		)
-																	).map(([type, count]) => (
-																		<div key={type}>
-																			{type}: {count as number}
-																		</div>
-																	))}
-																</div>
-															</div>
-														</div>
-													</div>
-												</div>
-											)}
-											*/}
-
-											<div className='flex justify-content-end'>
-												<Button
-													label={
-														isLoading
-															? 'Processing CSV...'
-															: 'Create Form from CSV'
-													}
-													icon={
-														isLoading
-															? 'pi pi-spin pi-spinner'
-															: 'pi pi-save'
-													}
-													onClick={handleCreateFromCsv}
-													className='p-button-primary'
-													disabled={
-														isLoading ||
-														fields.length === 0
-													}
-												/>
-											</div>
-										</>
-									)}
-								</Card>
-							) : null}
 						</div>
 
 						{/* MCP Status and Performance Panel */}
 						<div className='col-12 lg:col-4'>
 							<div className='space-y-4'>
-								{/* Temporarily disabled MCP components for debugging
 								<MCPStatusIndicator
 									operation='Field Validation'
 									status={mcpStatus}
@@ -924,28 +296,12 @@ export default function CreateForm({ params }: CreateFormProps) {
 										onDismiss={() => setMcpError('')}
 									/>
 								)}
-								<MCPHealthDashboard />
 
-								<MCPErrorDisplay
-									errors={formErrors.map(error => ({
-										code: 'FORM_ERROR' as const,
-										message: error,
-										timestamp: new Date(),
-									}))}
-									warnings={formWarnings}
-								/>
-								*/}
-								
-								{/* Simple debug info */}
-								<div className='p-4 bg-gray-800 rounded'>
-									<h4 className='text-white font-medium mb-2'>Debug Info</h4>
-									<div className='text-sm text-gray-300 space-y-1'>
-										<div>User ID: {user?.id || 'undefined'}</div>
-										<div>Fields Count: {fields.length}</div>
-										<div>Form Errors: {formErrors.length}</div>
-										<div>Form Warnings: {formWarnings.length}</div>
-									</div>
-								</div>
+								{/* MCP Debug Panel - Only show in development */}
+								{process.env.NODE_ENV === 'development' && <MCPDebugPanel />}
+
+								{/* Console Log Viewer - Only show in development */}
+								{process.env.NODE_ENV === 'development' && <ConsoleLogViewer />}
 							</div>
 						</div>
 					</div>

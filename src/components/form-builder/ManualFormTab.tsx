@@ -196,10 +196,17 @@ export default function ManualFormTab({
 								label: ft.label,
 								value: ft.value,
 							}))}
-							onChange={e => setFieldType(e.value)}
+							onChange={e => {
+								console.log('🔧 Manual Form: Field type changed to', e.value)
+								setFieldType(e.value)
+							}}
 							placeholder='Select field type'
 							className='w-full'
 						/>
+						<div className='mt-1 text-xs text-gray-400'>
+							📊 {filteredFieldTypes.length} field types available in{' '}
+							{selectedCategory} category
+						</div>
 					</div>
 
 					{/* Field Label */}

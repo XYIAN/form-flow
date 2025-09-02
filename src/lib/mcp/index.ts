@@ -17,6 +17,11 @@ export { FormMCP } from './implementations/FormMCP'
 export { FieldMCP } from './implementations/FieldMCP'
 export { SubmissionMCP } from './implementations/SubmissionMCP'
 
+// CSV Processing MCPs
+export { CSVParserMCP } from './implementations/CSVParserMCP'
+export { FieldTypeDetectorMCP } from './implementations/FieldTypeDetectorMCP'
+export { FormGeneratorMCP } from './implementations/FormGeneratorMCP'
+
 export { MCPLogger } from './implementations/logger'
 
 // MCP Configuration
