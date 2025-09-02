@@ -16,6 +16,11 @@ import { FIELD_TYPES, FIELD_CATEGORIES } from '@/constants'
 import { generateId } from '@/utils'
 import { FieldMCP, MCPLogger } from '@/lib/mcp'
 import Navigation from '@/components/Navigation'
+import FieldPreview from '@/components/FieldPreview'
+import MCPStatusIndicator from '@/components/MCPStatusIndicator'
+import MCPErrorDisplay from '@/components/MCPErrorDisplay'
+import MCPPerformanceDisplay from '@/components/MCPPerformanceDisplay'
+import MCPHealthDashboard from '@/components/MCPHealthDashboard'
 
 interface CreateFormProps {
 	params: Promise<{
@@ -25,7 +30,7 @@ interface CreateFormProps {
 
 export default function CreateForm({ params }: CreateFormProps) {
 	const { user, isAuthenticated } = useAuth()
-	const { createForm } = useForms()
+	const { createForm, errors: formErrors, warnings: formWarnings } = useForms()
 	const router = useRouter()
 	const [activeTab, setActiveTab] = useState<'manual' | 'csv'>('manual')
 	const [resolvedParams, setResolvedParams] = useState<{
@@ -51,6 +56,11 @@ export default function CreateForm({ params }: CreateFormProps) {
 	const [csvHeaders, setCsvHeaders] = useState<string[]>([])
 	const [csvTitle, setCsvTitle] = useState('')
 	const [csvDescription, setCsvDescription] = useState('')
+
+	// MCP Status
+	const [mcpStatus, setMcpStatus] = useState<'idle' | 'running' | 'success' | 'error'>('idle')
+	const [mcpExecutionTime, setMcpExecutionTime] = useState<number>()
+	const [mcpError, setMcpError] = useState<string>('')
 
 	// UI state
 	const [isLoading, setIsLoading] = useState(false)
@@ -88,6 +98,9 @@ export default function CreateForm({ params }: CreateFormProps) {
 			return
 		}
 
+		setMcpStatus('running')
+		setMcpError('')
+
 		// Create field object
 		const newField: FormField = {
 			id: generateId(),
@@ -107,6 +120,8 @@ export default function CreateForm({ params }: CreateFormProps) {
 				'Invalid field configuration',
 			]
 			setError(errorMessages.join(', '))
+			setMcpStatus('error')
+			setMcpError(errorMessages.join(', '))
 			MCPLogger.error(
 				'handleAddField',
 				validation.errors?.[0] || new Error('Field validation failed')
@@ -120,6 +135,8 @@ export default function CreateForm({ params }: CreateFormProps) {
 		setFields(prev => [...prev, sanitizedField])
 		resetFieldForm()
 		setError('')
+		setMcpStatus('success')
+		setMcpExecutionTime(validation.metadata?.executionTime)
 	}
 
 	const handleEditField = (field: FormField) => {
@@ -285,7 +302,9 @@ export default function CreateForm({ params }: CreateFormProps) {
 			<Navigation userEmail={user.email} companyName={user.companyName} />
 
 			<div className='p-4'>
-				<div className='w-full flex flex-col lg:w-2/3 mx-auto'>
+				<div className='w-full max-w-7xl mx-auto'>
+					<div className='grid'>
+						<div className='col-12 lg:col-8'>
 					<div className='flex justify-between items-center mb-4'>
 						<h2 className='text-2xl font-bold text-white'>Create New Form</h2>
 						<Button
@@ -532,6 +551,23 @@ export default function CreateForm({ params }: CreateFormProps) {
 								</div>
 							</Card>
 
+							{/* Field Preview */}
+							{(fieldLabel || editingField) && (
+								<FieldPreview
+									field={{
+										id: editingField?.id || 'preview-field',
+										label: fieldLabel || editingField?.label || 'Preview Field',
+										type: fieldType,
+										required: fieldRequired,
+										placeholder: fieldPlaceholder || undefined,
+										options: fieldOptions.trim()
+											? fieldOptions.split(',').map(opt => opt.trim())
+											: FieldMCP.generateDefaultOptions(fieldType),
+									}}
+									className="mt-4"
+								/>
+							)}
+
 							<div className='flex justify-end mt-4'>
 								<Button
 									label='Create Form'
@@ -634,6 +670,34 @@ export default function CreateForm({ params }: CreateFormProps) {
 							)}
 						</Card>
 					)}
+						</div>
+
+						{/* MCP Status and Performance Panel */}
+						<div className="col-12 lg:col-4">
+							<div className="space-y-4">
+								<MCPStatusIndicator
+									operation="Field Validation"
+									status={mcpStatus}
+									executionTime={mcpExecutionTime}
+									error={mcpError}
+								/>
+								
+								<MCPPerformanceDisplay />
+								
+								<MCPHealthDashboard />
+								
+								{/* Show MCP errors and warnings from FormContext */}
+								<MCPErrorDisplay
+									errors={formErrors.map(error => ({
+										code: 'FORM_ERROR' as const,
+										message: error,
+										timestamp: new Date(),
+									}))}
+									warnings={formWarnings}
+								/>
+							</div>
+						</div>
+					</div>
 				</div>
 			</div>
 		</div>

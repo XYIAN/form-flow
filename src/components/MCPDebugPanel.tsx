@@ -7,6 +7,7 @@ import { InputText } from 'primereact/inputtext'
 import { Dropdown } from 'primereact/dropdown'
 import { FieldMCP, FormMCP, MCPLogger } from '@/lib/mcp'
 import { FormField, FieldType } from '@/types'
+import { FIELD_TYPES } from '@/constants'
 
 interface MCPDebugPanelProps {
 	className?: string
@@ -34,16 +35,8 @@ export default function MCPDebugPanel({ className = '' }: MCPDebugPanelProps) {
 	const [testValue, setTestValue] = useState('')
 	const [selectedFieldType, setSelectedFieldType] = useState<FieldType>('text')
 
-	const fieldTypes: { label: string; value: FieldType }[] = [
-		{ label: 'Text', value: 'text' },
-		{ label: 'Email', value: 'email' },
-		{ label: 'Number', value: 'number' },
-		{ label: 'Date', value: 'date' },
-		{ label: 'Select', value: 'select' },
-		{ label: 'Checkbox', value: 'checkbox' },
-		{ label: 'Radio', value: 'radio' },
-		{ label: 'Textarea', value: 'textarea' },
-	]
+	// Use all available field types from constants
+	const fieldTypes = FIELD_TYPES
 
 	// Configure MCP Logger to capture logs
 	useEffect(() => {
