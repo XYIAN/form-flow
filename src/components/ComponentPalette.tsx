@@ -27,11 +27,13 @@ export default function ComponentPalette({
 	selectedCategory,
 	onCategoryChange,
 	searchQuery = '',
-	onSearchChange
+	onSearchChange,
 }: ComponentPaletteProps) {
 	const [components, setComponents] = useState<FormComponent[]>([])
 	const [categories, setCategories] = useState<ComponentCategory[]>([])
-	const [filteredComponents, setFilteredComponents] = useState<FormComponent[]>([])
+	const [filteredComponents, setFilteredComponents] = useState<FormComponent[]>(
+		[]
+	)
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState<string>('')
 
@@ -45,25 +47,35 @@ export default function ComponentPalette({
 				// Initialize the component library
 				const initResult = ComponentLibraryMCP.initialize()
 				if (!initResult.success) {
-					throw new Error(initResult.error?.message || 'Failed to initialize component library')
+					throw new Error(
+						initResult.errors?.[0]?.message ||
+							'Failed to initialize component library'
+					)
 				}
 
 				// Get all components
 				const componentsResult = ComponentLibraryMCP.getLibraries()
 				if (!componentsResult.success) {
-					throw new Error(componentsResult.error?.message || 'Failed to get component libraries')
+					throw new Error(
+						componentsResult.errors?.[0]?.message ||
+							'Failed to get component libraries'
+					)
 				}
 
 				// Extract components from libraries
 				const allComponents: FormComponent[] = []
-				componentsResult.data.forEach(library => {
-					allComponents.push(...library.components)
-				})
+				if (componentsResult.data) {
+					componentsResult.data.forEach(library => {
+						allComponents.push(...library.components)
+					})
+				}
 
 				setComponents(allComponents)
 
 				// Get unique categories
-				const uniqueCategories = Array.from(new Set(allComponents.map(comp => comp.category)))
+				const uniqueCategories = Array.from(
+					new Set(allComponents.map(comp => comp.category))
+				)
 				setCategories(uniqueCategories)
 
 				// Set default category if none selected
@@ -71,7 +83,9 @@ export default function ComponentPalette({
 					onCategoryChange?.(uniqueCategories[0])
 				}
 			} catch (err) {
-				setError(err instanceof Error ? err.message : 'Failed to load components')
+				setError(
+					err instanceof Error ? err.message : 'Failed to load components'
+				)
 			} finally {
 				setIsLoading(false)
 			}
@@ -92,24 +106,31 @@ export default function ComponentPalette({
 		// Filter by search query
 		if (searchQuery.trim()) {
 			const query = searchQuery.toLowerCase()
-			filtered = filtered.filter(comp =>
-				comp.name.toLowerCase().includes(query) ||
-				comp.description.toLowerCase().includes(query) ||
-				comp.metadata.tags.some(tag => tag.toLowerCase().includes(query))
+			filtered = filtered.filter(
+				comp =>
+					comp.name.toLowerCase().includes(query) ||
+					comp.description.toLowerCase().includes(query) ||
+					comp.metadata.tags.some(tag => tag.toLowerCase().includes(query))
 			)
 		}
 
 		setFilteredComponents(filtered)
 	}, [components, selectedCategory, searchQuery])
 
-	const handleComponentClick = useCallback((component: FormComponent) => {
-		onComponentSelect?.(component)
-	}, [onComponentSelect])
+	const handleComponentClick = useCallback(
+		(component: FormComponent) => {
+			onComponentSelect?.(component)
+		},
+		[onComponentSelect]
+	)
 
-	const handleComponentDragStart = useCallback((event: React.DragEvent, component: FormComponent) => {
-		event.dataTransfer.setData('application/json', JSON.stringify(component))
-		onComponentDrag?.(component)
-	}, [onComponentDrag])
+	const handleComponentDragStart = useCallback(
+		(event: React.DragEvent, component: FormComponent) => {
+			event.dataTransfer.setData('application/json', JSON.stringify(component))
+			onComponentDrag?.(component)
+		},
+		[onComponentDrag]
+	)
 
 	const getCategoryIcon = (category: ComponentCategory): string => {
 		switch (category) {
@@ -156,7 +177,7 @@ export default function ComponentPalette({
 	const categoryOptions = categories.map(category => ({
 		label: getCategoryLabel(category),
 		value: category,
-		icon: getCategoryIcon(category)
+		icon: getCategoryIcon(category),
 	}))
 
 	if (isLoading) {
@@ -201,13 +222,15 @@ export default function ComponentPalette({
 					<label className='block text-sm font-medium text-gray-300 mb-2'>
 						Search Components
 					</label>
-					<InputText
-						value={searchQuery}
-						onChange={(e) => onSearchChange?.(e.target.value)}
-						placeholder='Search components...'
-						className='w-full'
-						icon='pi pi-search'
-					/>
+					<div className='p-input-icon-left'>
+						<i className='pi pi-search' />
+						<InputText
+							value={searchQuery}
+							onChange={e => onSearchChange?.(e.target.value)}
+							placeholder='Search components...'
+							className='w-full'
+						/>
+					</div>
 				</div>
 
 				<div className='field'>
@@ -217,7 +240,7 @@ export default function ComponentPalette({
 					<Dropdown
 						value={selectedCategory}
 						options={categoryOptions}
-						onChange={(e) => onCategoryChange?.(e.value)}
+						onChange={e => onCategoryChange?.(e.value)}
 						optionLabel='label'
 						optionValue='value'
 						className='w-full'
@@ -229,36 +252,33 @@ export default function ComponentPalette({
 			{/* Components Grid */}
 			<ScrollPanel style={{ height: '400px' }} className='custom-scrollbar'>
 				<div className='grid'>
-					{filteredComponents.map((component) => (
+					{filteredComponents.map(component => (
 						<div key={component.id} className='col-12 md:col-6 lg:col-4'>
 							<Card
 								className='component-card cursor-pointer hover:shadow-lg transition-all duration-200'
 								onClick={() => handleComponentClick(component)}
 								draggable
-								onDragStart={(e) => handleComponentDragStart(e, component)}
+								onDragStart={e => handleComponentDragStart(e, component)}
 							>
 								<div className='text-center p-3'>
 									<div className='mb-3'>
 										<i className={`${component.icon} text-3xl text-blue-400`} />
 									</div>
-									
-									<h4 className='text-white font-medium mb-2'>{component.name}</h4>
-									
+
+									<h4 className='text-white font-medium mb-2'>
+										{component.name}
+									</h4>
+
 									<p className='text-gray-300 text-sm mb-3 line-clamp-2'>
 										{component.description}
 									</p>
-									
+
 									<div className='flex justify-center gap-1 mb-3'>
 										{component.metadata.tags.slice(0, 3).map((tag, index) => (
-											<Badge
-												key={index}
-												value={tag}
-												severity='secondary'
-												size='small'
-											/>
+											<Badge key={index} value={tag} severity='secondary' />
 										))}
 									</div>
-									
+
 									<div className='flex justify-between items-center text-xs text-gray-400'>
 										<span>Type: {component.type}</span>
 										<span>v{component.metadata.version}</span>
@@ -274,10 +294,9 @@ export default function ComponentPalette({
 						<i className='pi pi-search text-4xl text-gray-400 mb-3' />
 						<h4 className='text-white mb-2'>No Components Found</h4>
 						<p className='text-gray-300'>
-							{searchQuery.trim() 
+							{searchQuery.trim()
 								? 'Try adjusting your search terms or category filter'
-								: 'No components available in this category'
-							}
+								: 'No components available in this category'}
 						</p>
 					</div>
 				)}
@@ -287,10 +306,13 @@ export default function ComponentPalette({
 			<div className='border-t border-gray-700 pt-3 mt-4'>
 				<div className='flex justify-between items-center text-sm text-gray-400'>
 					<span>
-						{filteredComponents.length} component{filteredComponents.length !== 1 ? 's' : ''} available
+						{filteredComponents.length} component
+						{filteredComponents.length !== 1 ? 's' : ''} available
 					</span>
 					<span>
-						{selectedCategory ? getCategoryLabel(selectedCategory) : 'All Categories'}
+						{selectedCategory
+							? getCategoryLabel(selectedCategory)
+							: 'All Categories'}
 					</span>
 				</div>
 			</div>

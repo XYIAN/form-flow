@@ -1,10 +1,10 @@
 import { MCPResult } from './types'
-import { 
-	FormTemplate, 
-	TemplateCategory, 
-	FormLayout, 
+import {
+	FormTemplate,
+	TemplateCategory,
+	FormLayout,
 	FormField,
-	TemplateMetadata 
+	TemplateMetadata,
 } from '@/types'
 
 export interface ITemplateLibraryProtocol {
@@ -36,7 +36,10 @@ export interface ITemplateLibraryProtocol {
 	/**
 	 * Update an existing template
 	 */
-	updateTemplate(templateId: string, updates: Partial<FormTemplate>): MCPResult<FormTemplate>
+	updateTemplate(
+		templateId: string,
+		updates: Partial<FormTemplate>
+	): MCPResult<FormTemplate>
 
 	/**
 	 * Delete a template
@@ -46,7 +49,10 @@ export interface ITemplateLibraryProtocol {
 	/**
 	 * Clone a template with modifications
 	 */
-	cloneTemplate(templateId: string, modifications: Partial<FormTemplate>): MCPResult<FormTemplate>
+	cloneTemplate(
+		templateId: string,
+		modifications: Partial<FormTemplate>
+	): MCPResult<FormTemplate>
 
 	/**
 	 * Validate template configuration
@@ -76,17 +82,27 @@ export interface ITemplateLibraryProtocol {
 	/**
 	 * Remove field from template
 	 */
-	removeFieldFromTemplate(templateId: string, fieldId: string): MCPResult<boolean>
+	removeFieldFromTemplate(
+		templateId: string,
+		fieldId: string
+	): MCPResult<boolean>
 
 	/**
 	 * Update field in template
 	 */
-	updateFieldInTemplate(templateId: string, fieldId: string, updates: Partial<FormField>): MCPResult<boolean>
+	updateFieldInTemplate(
+		templateId: string,
+		fieldId: string,
+		updates: Partial<FormField>
+	): MCPResult<boolean>
 
 	/**
 	 * Reorder fields in template
 	 */
-	reorderTemplateFields(templateId: string, fieldIds: string[]): MCPResult<boolean>
+	reorderTemplateFields(
+		templateId: string,
+		fieldIds: string[]
+	): MCPResult<boolean>
 
 	/**
 	 * Get template metadata
@@ -96,7 +112,10 @@ export interface ITemplateLibraryProtocol {
 	/**
 	 * Update template metadata
 	 */
-	updateTemplateMetadata(templateId: string, metadata: Partial<TemplateMetadata>): MCPResult<boolean>
+	updateTemplateMetadata(
+		templateId: string,
+		metadata: Partial<TemplateMetadata>
+	): MCPResult<boolean>
 
 	/**
 	 * Get template categories
@@ -106,12 +125,17 @@ export interface ITemplateLibraryProtocol {
 	/**
 	 * Get templates by difficulty level
 	 */
-	getTemplatesByDifficulty(difficulty: 'beginner' | 'intermediate' | 'advanced'): MCPResult<FormTemplate[]>
+	getTemplatesByDifficulty(
+		difficulty: 'beginner' | 'intermediate' | 'advanced'
+	): MCPResult<FormTemplate[]>
 
 	/**
 	 * Get templates by estimated time
 	 */
-	getTemplatesByTimeRange(minMinutes: number, maxMinutes: number): MCPResult<FormTemplate[]>
+	getTemplatesByTimeRange(
+		minMinutes: number,
+		maxMinutes: number
+	): MCPResult<FormTemplate[]>
 
 	/**
 	 * Export template

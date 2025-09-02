@@ -1,12 +1,12 @@
 import { MCPResult } from './types'
-import { 
-	ComponentLibrary, 
-	FormComponent, 
-	ComponentCategory, 
+import {
+	ComponentLibrary,
+	FormComponent,
+	ComponentCategory,
 	ComponentProps,
 	ComponentValidation,
 	ComponentStyle,
-	ComponentBehavior 
+	ComponentBehavior,
 } from '@/types'
 
 export interface IComponentLibraryProtocol {
@@ -23,7 +23,9 @@ export interface IComponentLibraryProtocol {
 	/**
 	 * Get components by category
 	 */
-	getComponentsByCategory(category: ComponentCategory): MCPResult<FormComponent[]>
+	getComponentsByCategory(
+		category: ComponentCategory
+	): MCPResult<FormComponent[]>
 
 	/**
 	 * Get a specific component by ID
@@ -38,12 +40,17 @@ export interface IComponentLibraryProtocol {
 	/**
 	 * Create a new component library
 	 */
-	createLibrary(library: Omit<ComponentLibrary, 'id' | 'createdAt' | 'updatedAt'>): MCPResult<ComponentLibrary>
+	createLibrary(
+		library: Omit<ComponentLibrary, 'id' | 'createdAt' | 'updatedAt'>
+	): MCPResult<ComponentLibrary>
 
 	/**
 	 * Update an existing component library
 	 */
-	updateLibrary(libraryId: string, updates: Partial<ComponentLibrary>): MCPResult<ComponentLibrary>
+	updateLibrary(
+		libraryId: string,
+		updates: Partial<ComponentLibrary>
+	): MCPResult<ComponentLibrary>
 
 	/**
 	 * Delete a component library
@@ -53,12 +60,18 @@ export interface IComponentLibraryProtocol {
 	/**
 	 * Add a component to a library
 	 */
-	addComponent(libraryId: string, component: Omit<FormComponent, 'id'>): MCPResult<FormComponent>
+	addComponent(
+		libraryId: string,
+		component: Omit<FormComponent, 'id'>
+	): MCPResult<FormComponent>
 
 	/**
 	 * Update a component in a library
 	 */
-	updateComponent(componentId: string, updates: Partial<FormComponent>): MCPResult<FormComponent>
+	updateComponent(
+		componentId: string,
+		updates: Partial<FormComponent>
+	): MCPResult<FormComponent>
 
 	/**
 	 * Remove a component from a library
@@ -73,7 +86,10 @@ export interface IComponentLibraryProtocol {
 	/**
 	 * Get component preview data
 	 */
-	getComponentPreview(componentId: string, props?: ComponentProps): MCPResult<string>
+	getComponentPreview(
+		componentId: string,
+		props?: ComponentProps
+	): MCPResult<string>
 
 	/**
 	 * Get component examples
@@ -83,7 +99,10 @@ export interface IComponentLibraryProtocol {
 	/**
 	 * Clone a component with modifications
 	 */
-	cloneComponent(componentId: string, modifications: Partial<FormComponent>): MCPResult<FormComponent>
+	cloneComponent(
+		componentId: string,
+		modifications: Partial<FormComponent>
+	): MCPResult<FormComponent>
 
 	/**
 	 * Get component dependencies
@@ -93,7 +112,10 @@ export interface IComponentLibraryProtocol {
 	/**
 	 * Validate component props
 	 */
-	validateComponentProps(componentId: string, props: ComponentProps): MCPResult<boolean>
+	validateComponentProps(
+		componentId: string,
+		props: ComponentProps
+	): MCPResult<boolean>
 
 	/**
 	 * Get component validation rules
@@ -118,7 +140,10 @@ export interface IComponentLibraryProtocol {
 	/**
 	 * Import component library
 	 */
-	importLibrary(data: string, format: 'json' | 'yaml'): MCPResult<ComponentLibrary>
+	importLibrary(
+		data: string,
+		format: 'json' | 'yaml'
+	): MCPResult<ComponentLibrary>
 }
 
 interface ComponentExample {

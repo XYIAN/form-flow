@@ -1,10 +1,5 @@
 import { MCPResult } from './types'
-import { 
-	FormLayout, 
-	FormSection, 
-	FormColumn, 
-	LayoutType
-} from '@/types'
+import { FormLayout, FormSection, FormColumn, LayoutType } from '@/types'
 
 export interface ILayoutSystemProtocol {
 	/**
@@ -30,7 +25,10 @@ export interface ILayoutSystemProtocol {
 	/**
 	 * Update an existing layout
 	 */
-	updateLayout(layoutId: string, updates: Partial<FormLayout>): MCPResult<FormLayout>
+	updateLayout(
+		layoutId: string,
+		updates: Partial<FormLayout>
+	): MCPResult<FormLayout>
 
 	/**
 	 * Delete a layout
@@ -40,7 +38,10 @@ export interface ILayoutSystemProtocol {
 	/**
 	 * Clone a layout with modifications
 	 */
-	cloneLayout(layoutId: string, modifications: Partial<FormLayout>): MCPResult<FormLayout>
+	cloneLayout(
+		layoutId: string,
+		modifications: Partial<FormLayout>
+	): MCPResult<FormLayout>
 
 	/**
 	 * Validate layout configuration
@@ -55,12 +56,18 @@ export interface ILayoutSystemProtocol {
 	/**
 	 * Add section to layout
 	 */
-	addSection(layoutId: string, section: Omit<FormSection, 'id'>): MCPResult<FormSection>
+	addSection(
+		layoutId: string,
+		section: Omit<FormSection, 'id'>
+	): MCPResult<FormSection>
 
 	/**
 	 * Update section in layout
 	 */
-	updateSection(sectionId: string, updates: Partial<FormSection>): MCPResult<FormSection>
+	updateSection(
+		sectionId: string,
+		updates: Partial<FormSection>
+	): MCPResult<FormSection>
 
 	/**
 	 * Remove section from layout
@@ -75,12 +82,18 @@ export interface ILayoutSystemProtocol {
 	/**
 	 * Add column to section
 	 */
-	addColumn(sectionId: string, column: Omit<FormColumn, 'id'>): MCPResult<FormColumn>
+	addColumn(
+		sectionId: string,
+		column: Omit<FormColumn, 'id'>
+	): MCPResult<FormColumn>
 
 	/**
 	 * Update column in section
 	 */
-	updateColumn(columnId: string, updates: Partial<FormColumn>): MCPResult<FormColumn>
+	updateColumn(
+		columnId: string,
+		updates: Partial<FormColumn>
+	): MCPResult<FormColumn>
 
 	/**
 	 * Remove column from section
@@ -100,7 +113,11 @@ export interface ILayoutSystemProtocol {
 	/**
 	 * Move field between columns
 	 */
-	moveFieldToColumn(fieldId: string, fromColumnId: string, toColumnId: string): MCPResult<boolean>
+	moveFieldToColumn(
+		fieldId: string,
+		fromColumnId: string,
+		toColumnId: string
+	): MCPResult<boolean>
 
 	/**
 	 * Get responsive breakpoints for layout

@@ -160,6 +160,15 @@ export interface CSVFormData {
 	headers: string[]
 }
 
+export interface CSVTemplate {
+	name: string
+	description: string
+	headers: string[]
+	sampleData: string[][]
+	fieldTypes: FieldType[]
+	instructions: string
+}
+
 // Component Library Types
 export interface ComponentLibrary {
 	id: string
@@ -172,7 +181,7 @@ export interface ComponentLibrary {
 	updatedAt: Date
 }
 
-export type ComponentCategory = 
+export type ComponentCategory =
 	| 'basic'
 	| 'advanced'
 	| 'financial'
@@ -264,7 +273,7 @@ export interface FormLayout {
 	metadata: LayoutMetadata
 }
 
-export type LayoutType = 
+export type LayoutType =
 	| 'single-column'
 	| 'two-column'
 	| 'three-column'
@@ -280,12 +289,7 @@ export interface FormSection {
 	behavior: SectionBehavior
 }
 
-export type SectionType = 
-	| 'header'
-	| 'content'
-	| 'footer'
-	| 'sidebar'
-	| 'custom'
+export type SectionType = 'header' | 'content' | 'footer' | 'sidebar' | 'custom'
 
 export interface FormColumn {
 	id: string
@@ -337,7 +341,7 @@ export interface FormTemplate {
 	metadata: TemplateMetadata
 }
 
-export type TemplateCategory = 
+export type TemplateCategory =
 	| 'legal'
 	| 'medical'
 	| 'business'

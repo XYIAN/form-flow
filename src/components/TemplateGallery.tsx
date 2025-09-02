@@ -20,7 +20,9 @@ interface TemplateGalleryProps {
 	searchQuery?: string
 	onSearchChange?: (query: string) => void
 	difficultyFilter?: 'beginner' | 'intermediate' | 'advanced' | null
-	onDifficultyChange?: (difficulty: 'beginner' | 'intermediate' | 'advanced' | null) => void
+	onDifficultyChange?: (
+		difficulty: 'beginner' | 'intermediate' | 'advanced' | null
+	) => void
 }
 
 export default function TemplateGallery({
@@ -33,7 +35,7 @@ export default function TemplateGallery({
 	searchQuery = '',
 	onSearchChange,
 	difficultyFilter,
-	onDifficultyChange
+	onDifficultyChange,
 }: TemplateGalleryProps) {
 	const [templates, setTemplates] = useState<FormTemplate[]>([])
 	const [categories, setCategories] = useState<TemplateCategory[]>([])
@@ -51,29 +53,38 @@ export default function TemplateGallery({
 				// Initialize the template library
 				const initResult = TemplateLibraryMCP.initialize()
 				if (!initResult.success) {
-					throw new Error(initResult.error?.message || 'Failed to initialize template library')
+					throw new Error(
+						initResult.errors?.[0]?.message ||
+							'Failed to initialize template library'
+					)
 				}
 
 				// Get all templates
 				const templatesResult = TemplateLibraryMCP.getTemplates()
 				if (!templatesResult.success) {
-					throw new Error(templatesResult.error?.message || 'Failed to get templates')
+					throw new Error(
+						templatesResult.errors?.[0]?.message || 'Failed to get templates'
+					)
 				}
 
-				setTemplates(templatesResult.data)
+				if (templatesResult.data) {
+					setTemplates(templatesResult.data)
+				}
 
 				// Get categories
 				const categoriesResult = TemplateLibraryMCP.getTemplateCategories()
-				if (categoriesResult.success) {
+				if (categoriesResult.success && categoriesResult.data) {
 					setCategories(categoriesResult.data)
-				}
 
-				// Set default category if none selected
-				if (!selectedCategory && categoriesResult.success && categoriesResult.data.length > 0) {
-					onCategoryChange?.(categoriesResult.data[0])
+					// Set default category if none selected
+					if (!selectedCategory && categoriesResult.data.length > 0) {
+						onCategoryChange?.(categoriesResult.data[0])
+					}
 				}
 			} catch (err) {
-				setError(err instanceof Error ? err.message : 'Failed to load templates')
+				setError(
+					err instanceof Error ? err.message : 'Failed to load templates'
+				)
 			} finally {
 				setIsLoading(false)
 			}
@@ -88,34 +99,45 @@ export default function TemplateGallery({
 
 		// Filter by category
 		if (selectedCategory) {
-			filtered = filtered.filter(template => template.category === selectedCategory)
+			filtered = filtered.filter(
+				template => template.category === selectedCategory
+			)
 		}
 
 		// Filter by difficulty
 		if (difficultyFilter) {
-			filtered = filtered.filter(template => template.metadata.difficulty === difficultyFilter)
+			filtered = filtered.filter(
+				template => template.metadata.difficulty === difficultyFilter
+			)
 		}
 
 		// Filter by search query
 		if (searchQuery.trim()) {
 			const query = searchQuery.toLowerCase()
-			filtered = filtered.filter(template =>
-				template.name.toLowerCase().includes(query) ||
-				template.description.toLowerCase().includes(query) ||
-				template.metadata.tags.some(tag => tag.toLowerCase().includes(query))
+			filtered = filtered.filter(
+				template =>
+					template.name.toLowerCase().includes(query) ||
+					template.description.toLowerCase().includes(query) ||
+					template.metadata.tags.some(tag => tag.toLowerCase().includes(query))
 			)
 		}
 
 		setFilteredTemplates(filtered)
 	}, [templates, selectedCategory, difficultyFilter, searchQuery])
 
-	const handleTemplateSelect = useCallback((template: FormTemplate) => {
-		onTemplateSelect?.(template)
-	}, [onTemplateSelect])
+	const handleTemplateSelect = useCallback(
+		(template: FormTemplate) => {
+			onTemplateSelect?.(template)
+		},
+		[onTemplateSelect]
+	)
 
-	const handleTemplateUse = useCallback((template: FormTemplate) => {
-		onTemplateUse?.(template)
-	}, [onTemplateUse])
+	const handleTemplateUse = useCallback(
+		(template: FormTemplate) => {
+			onTemplateUse?.(template)
+		},
+		[onTemplateUse]
+	)
 
 	const getCategoryIcon = (category: TemplateCategory): string => {
 		switch (category) {
@@ -167,7 +189,9 @@ export default function TemplateGallery({
 		}
 	}
 
-	const getDifficultyColor = (difficulty: 'beginner' | 'intermediate' | 'advanced'): string => {
+	const getDifficultyColor = (
+		difficulty: 'beginner' | 'intermediate' | 'advanced'
+	): string => {
 		switch (difficulty) {
 			case 'beginner':
 				return 'success'
@@ -180,19 +204,17 @@ export default function TemplateGallery({
 		}
 	}
 
-
-
 	const categoryOptions = categories.map(category => ({
 		label: getCategoryLabel(category),
 		value: category,
-		icon: getCategoryIcon(category)
+		icon: getCategoryIcon(category),
 	}))
 
 	const difficultyOptions = [
 		{ label: 'All Levels', value: null },
 		{ label: 'Beginner', value: 'beginner' },
 		{ label: 'Intermediate', value: 'intermediate' },
-		{ label: 'Advanced', value: 'advanced' }
+		{ label: 'Advanced', value: 'advanced' },
 	]
 
 	if (isLoading) {
@@ -237,13 +259,15 @@ export default function TemplateGallery({
 					<label className='block text-sm font-medium text-gray-300 mb-2'>
 						Search Templates
 					</label>
-					<InputText
-						value={searchQuery}
-						onChange={(e) => onSearchChange?.(e.target.value)}
-						placeholder='Search templates...'
-						className='w-full'
-						icon='pi pi-search'
-					/>
+					<div className='p-input-icon-left'>
+						<i className='pi pi-search' />
+						<InputText
+							value={searchQuery}
+							onChange={e => onSearchChange?.(e.target.value)}
+							placeholder='Search templates...'
+							className='w-full'
+						/>
+					</div>
 				</div>
 
 				<div className='grid'>
@@ -255,7 +279,7 @@ export default function TemplateGallery({
 							<Dropdown
 								value={selectedCategory}
 								options={categoryOptions}
-								onChange={(e) => onCategoryChange?.(e.value)}
+								onChange={e => onCategoryChange?.(e.value)}
 								optionLabel='label'
 								optionValue='value'
 								className='w-full'
@@ -271,7 +295,7 @@ export default function TemplateGallery({
 							<Dropdown
 								value={difficultyFilter}
 								options={difficultyOptions}
-								onChange={(e) => onDifficultyChange?.(e.value)}
+								onChange={e => onDifficultyChange?.(e.value)}
 								optionLabel='label'
 								optionValue='value'
 								className='w-full'
@@ -285,11 +309,13 @@ export default function TemplateGallery({
 			{/* Templates Grid */}
 			<ScrollPanel style={{ height: '400px' }} className='custom-scrollbar'>
 				<div className='space-y-3'>
-					{filteredTemplates.map((template) => (
+					{filteredTemplates.map(template => (
 						<Card
 							key={template.id}
 							className={`template-card cursor-pointer hover:shadow-lg transition-all duration-200 ${
-								selectedTemplate?.id === template.id ? 'border-blue-400 bg-blue-50' : ''
+								selectedTemplate?.id === template.id
+									? 'border-blue-400 bg-blue-50'
+									: ''
 							}`}
 							onClick={() => handleTemplateSelect(template)}
 						>
@@ -297,23 +323,32 @@ export default function TemplateGallery({
 								<div className='flex justify-between items-start mb-3'>
 									<div className='flex-1'>
 										<div className='flex items-center gap-2 mb-2'>
-											<i className={`${getCategoryIcon(template.category)} text-blue-400`} />
-											<h4 className='text-white font-medium'>{template.name}</h4>
+											<i
+												className={`${getCategoryIcon(
+													template.category
+												)} text-blue-400`}
+											/>
+											<h4 className='text-white font-medium'>
+												{template.name}
+											</h4>
 										</div>
-										<p className='text-gray-300 text-sm mb-2'>{template.description}</p>
+										<p className='text-gray-300 text-sm mb-2'>
+											{template.description}
+										</p>
 									</div>
 									<div className='flex flex-col items-end gap-2'>
 										<Badge
 											value={template.metadata.difficulty}
-											severity={getDifficultyColor(template.metadata.difficulty)}
-											size='small'
+											severity={getDifficultyColor(
+												template.metadata.difficulty
+											)}
 										/>
 										<Button
 											label='Use Template'
 											icon='pi pi-play'
 											size='small'
 											className='p-button-sm'
-											onClick={(e) => {
+											onClick={e => {
 												e.stopPropagation()
 												handleTemplateUse(template)
 											}}
@@ -341,14 +376,15 @@ export default function TemplateGallery({
 								<div className='mb-3'>
 									<div className='text-xs text-gray-400 mb-1'>Features:</div>
 									<div className='flex flex-wrap gap-1'>
-										{template.metadata.features.slice(0, 3).map((feature, index) => (
-											<Badge
-												key={index}
-												value={feature}
-												severity='secondary'
-												size='small'
-											/>
-										))}
+										{template.metadata.features
+											.slice(0, 3)
+											.map((feature, index) => (
+												<Badge
+													key={index}
+													value={feature}
+													severity='secondary'
+												/>
+											))}
 										{template.metadata.features.length > 3 && (
 											<Badge
 												value={`+${template.metadata.features.length - 3} more`}
@@ -382,8 +418,7 @@ export default function TemplateGallery({
 						<p className='text-gray-300'>
 							{searchQuery.trim() || selectedCategory || difficultyFilter
 								? 'Try adjusting your search terms or filters'
-								: 'No templates available'
-							}
+								: 'No templates available'}
 						</p>
 					</div>
 				)}
@@ -393,10 +428,13 @@ export default function TemplateGallery({
 			<div className='border-t border-gray-700 pt-3 mt-4'>
 				<div className='flex justify-between items-center text-sm text-gray-400'>
 					<span>
-						{filteredTemplates.length} template{filteredTemplates.length !== 1 ? 's' : ''} available
+						{filteredTemplates.length} template
+						{filteredTemplates.length !== 1 ? 's' : ''} available
 					</span>
 					<span>
-						{selectedCategory ? getCategoryLabel(selectedCategory) : 'All Categories'}
+						{selectedCategory
+							? getCategoryLabel(selectedCategory)
+							: 'All Categories'}
 					</span>
 				</div>
 			</div>

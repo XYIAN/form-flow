@@ -1,10 +1,10 @@
-import { ITemplateLibraryProtocol, TemplateUsageStats } from '../protocols/ITemplateLibraryProtocol'
+import {
+	ITemplateLibraryProtocol,
+	TemplateUsageStats,
+} from '../protocols/ITemplateLibraryProtocol'
 import { MCPResult, MCPError } from '../protocols/types'
 import { MCPLogger } from './logger'
-import { 
-	FormTemplate, 
-	TemplateCategory
-} from '@/types'
+import { FormTemplate, TemplateCategory } from '@/types'
 
 export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 	private static templates: FormTemplate[] = []
@@ -15,9 +15,12 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 	 */
 	static initialize(): MCPResult<boolean> {
 		const startTime = performance.now()
-		
+
 		try {
-			MCPLogger.info('TemplateLibraryMCP.initialize', 'Initializing template library system')
+			MCPLogger.info(
+				'TemplateLibraryMCP.initialize',
+				'Initializing template library system'
+			)
 
 			// Create default templates
 			const defaultTemplates = this.createDefaultTemplates()
@@ -31,32 +34,39 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 					lastUsed: new Date(),
 					averageRating: 0,
 					ratingCount: 0,
-					completionRate: 0
+					completionRate: 0,
 				})
 			})
 
 			const executionTime = performance.now() - startTime
-			MCPLogger.info('TemplateLibraryMCP.initialize', 'Template library initialized successfully', { 
-				templatesCount: this.templates.length 
-			}, executionTime)
+			MCPLogger.info(
+				'TemplateLibraryMCP.initialize',
+				'Template library initialized successfully',
+				{
+					templatesCount: this.templates.length,
+				},
+				executionTime
+			)
 
 			return {
 				success: true,
 				data: true,
-				metadata: { executionTime }
+				metadata: { executionTime },
 			}
 		} catch (error) {
 			const executionTime = performance.now() - startTime
-			MCPLogger.error('TemplateLibraryMCP.initialize', error as Error, { executionTime })
-			
+			MCPLogger.error('TemplateLibraryMCP.initialize', error as Error, {
+				executionTime,
+			})
+
 			return {
 				success: false,
 				error: {
 					code: 'INITIALIZATION_ERROR',
 					message: 'Failed to initialize template library system',
 					details: { error: (error as Error).message },
-					timestamp: new Date()
-				}
+					timestamp: new Date(),
+				},
 			}
 		}
 	}
@@ -66,32 +76,42 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 	 */
 	static getTemplates(): MCPResult<FormTemplate[]> {
 		const startTime = performance.now()
-		
+
 		try {
-			MCPLogger.debug('TemplateLibraryMCP.getTemplates', 'Retrieving all templates')
+			MCPLogger.debug(
+				'TemplateLibraryMCP.getTemplates',
+				'Retrieving all templates'
+			)
 
 			const executionTime = performance.now() - startTime
-			MCPLogger.debug('TemplateLibraryMCP.getTemplates', 'Templates retrieved successfully', { 
-				count: this.templates.length 
-			}, executionTime)
+			MCPLogger.debug(
+				'TemplateLibraryMCP.getTemplates',
+				'Templates retrieved successfully',
+				{
+					count: this.templates.length,
+				},
+				executionTime
+			)
 
 			return {
 				success: true,
 				data: [...this.templates],
-				metadata: { executionTime }
+				metadata: { executionTime },
 			}
 		} catch (error) {
 			const executionTime = performance.now() - startTime
-			MCPLogger.error('TemplateLibraryMCP.getTemplates', error as Error, { executionTime })
-			
+			MCPLogger.error('TemplateLibraryMCP.getTemplates', error as Error, {
+				executionTime,
+			})
+
 			return {
 				success: false,
 				error: {
 					code: 'TEMPLATE_RETRIEVAL_ERROR',
 					message: 'Failed to retrieve templates',
 					details: { error: (error as Error).message },
-					timestamp: new Date()
-				}
+					timestamp: new Date(),
+				},
 			}
 		}
 	}
@@ -101,49 +121,66 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 	 */
 	static getTemplate(templateId: string): MCPResult<FormTemplate> {
 		const startTime = performance.now()
-		
-		try {
-			MCPLogger.debug('TemplateLibraryMCP.getTemplate', 'Retrieving template', { templateId })
 
-			const template = this.templates.find(template => template.id === templateId)
+		try {
+			MCPLogger.debug('TemplateLibraryMCP.getTemplate', 'Retrieving template', {
+				templateId,
+			})
+
+			const template = this.templates.find(
+				template => template.id === templateId
+			)
 			if (!template) {
 				const executionTime = performance.now() - startTime
-				MCPLogger.warn('TemplateLibraryMCP.getTemplate', 'Template not found', { templateId }, executionTime)
-				
+				MCPLogger.warn(
+					'TemplateLibraryMCP.getTemplate',
+					'Template not found',
+					{ templateId },
+					executionTime
+				)
+
 				return {
 					success: false,
 					error: {
 						code: 'TEMPLATE_NOT_FOUND',
 						message: `Template with ID '${templateId}' not found`,
 						details: { templateId },
-						timestamp: new Date()
-					}
+						timestamp: new Date(),
+					},
 				}
 			}
 
 			const executionTime = performance.now() - startTime
-			MCPLogger.debug('TemplateLibraryMCP.getTemplate', 'Template retrieved successfully', { 
-				templateId,
-				fieldsCount: template.fields.length 
-			}, executionTime)
+			MCPLogger.debug(
+				'TemplateLibraryMCP.getTemplate',
+				'Template retrieved successfully',
+				{
+					templateId,
+					fieldsCount: template.fields.length,
+				},
+				executionTime
+			)
 
 			return {
 				success: true,
 				data: { ...template },
-				metadata: { executionTime }
+				metadata: { executionTime },
 			}
 		} catch (error) {
 			const executionTime = performance.now() - startTime
-			MCPLogger.error('TemplateLibraryMCP.getTemplate', error as Error, { templateId, executionTime })
-			
+			MCPLogger.error('TemplateLibraryMCP.getTemplate', error as Error, {
+				templateId,
+				executionTime,
+			})
+
 			return {
 				success: false,
 				error: {
 					code: 'TEMPLATE_RETRIEVAL_ERROR',
 					message: 'Failed to retrieve template',
 					details: { templateId, error: (error as Error).message },
-					timestamp: new Date()
-				}
+					timestamp: new Date(),
+				},
 			}
 		}
 	}
@@ -151,37 +188,54 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 	/**
 	 * Get templates by category
 	 */
-	static getTemplatesByCategory(category: TemplateCategory): MCPResult<FormTemplate[]> {
+	static getTemplatesByCategory(
+		category: TemplateCategory
+	): MCPResult<FormTemplate[]> {
 		const startTime = performance.now()
-		
-		try {
-			MCPLogger.debug('TemplateLibraryMCP.getTemplatesByCategory', 'Retrieving templates by category', { category })
 
-			const templates = this.templates.filter(template => template.category === category)
+		try {
+			MCPLogger.debug(
+				'TemplateLibraryMCP.getTemplatesByCategory',
+				'Retrieving templates by category',
+				{ category }
+			)
+
+			const templates = this.templates.filter(
+				template => template.category === category
+			)
 
 			const executionTime = performance.now() - startTime
-			MCPLogger.debug('TemplateLibraryMCP.getTemplatesByCategory', 'Templates retrieved successfully', { 
-				category,
-				count: templates.length 
-			}, executionTime)
+			MCPLogger.debug(
+				'TemplateLibraryMCP.getTemplatesByCategory',
+				'Templates retrieved successfully',
+				{
+					category,
+					count: templates.length,
+				},
+				executionTime
+			)
 
 			return {
 				success: true,
 				data: [...templates],
-				metadata: { executionTime }
+				metadata: { executionTime },
 			}
 		} catch (error) {
 			const executionTime = performance.now() - startTime
-			MCPLogger.error('TemplateLibraryMCP.getTemplatesByCategory', error as Error, { category, executionTime })
-			
+			MCPLogger.error(
+				'TemplateLibraryMCP.getTemplatesByCategory',
+				error as Error,
+				{ category, executionTime }
+			)
+
 			return {
 				success: false,
 				error: {
 					code: 'TEMPLATE_RETRIEVAL_ERROR',
 					message: 'Failed to retrieve templates by category',
 					details: { category, error: (error as Error).message },
-					timestamp: new Date()
-				}
+					timestamp: new Date(),
+				},
 			}
 		}
 	}
@@ -191,40 +245,55 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 	 */
 	static searchTemplates(query: string): MCPResult<FormTemplate[]> {
 		const startTime = performance.now()
-		
+
 		try {
-			MCPLogger.debug('TemplateLibraryMCP.searchTemplates', 'Searching templates', { query })
+			MCPLogger.debug(
+				'TemplateLibraryMCP.searchTemplates',
+				'Searching templates',
+				{ query }
+			)
 
 			const searchTerm = query.toLowerCase()
-			const results = this.templates.filter(template => 
-				template.name.toLowerCase().includes(searchTerm) ||
-				template.description.toLowerCase().includes(searchTerm) ||
-				template.metadata.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+			const results = this.templates.filter(
+				template =>
+					template.name.toLowerCase().includes(searchTerm) ||
+					template.description.toLowerCase().includes(searchTerm) ||
+					template.metadata.tags.some(tag =>
+						tag.toLowerCase().includes(searchTerm)
+					)
 			)
 
 			const executionTime = performance.now() - startTime
-			MCPLogger.debug('TemplateLibraryMCP.searchTemplates', 'Search completed successfully', { 
-				query,
-				resultsCount: results.length 
-			}, executionTime)
+			MCPLogger.debug(
+				'TemplateLibraryMCP.searchTemplates',
+				'Search completed successfully',
+				{
+					query,
+					resultsCount: results.length,
+				},
+				executionTime
+			)
 
 			return {
 				success: true,
 				data: [...results],
-				metadata: { executionTime }
+				metadata: { executionTime },
 			}
 		} catch (error) {
 			const executionTime = performance.now() - startTime
-			MCPLogger.error('TemplateLibraryMCP.searchTemplates', error as Error, { query, executionTime })
-			
+			MCPLogger.error('TemplateLibraryMCP.searchTemplates', error as Error, {
+				query,
+				executionTime,
+			})
+
 			return {
 				success: false,
 				error: {
 					code: 'SEARCH_ERROR',
 					message: 'Failed to search templates',
 					details: { query, error: (error as Error).message },
-					timestamp: new Date()
-				}
+					timestamp: new Date(),
+				},
 			}
 		}
 	}
@@ -237,7 +306,11 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 		const errors: MCPError[] = []
 
 		try {
-			MCPLogger.debug('TemplateLibraryMCP.validateTemplate', 'Validating template', { templateId: template.id })
+			MCPLogger.debug(
+				'TemplateLibraryMCP.validateTemplate',
+				'Validating template',
+				{ templateId: template.id }
+			)
 
 			// Validate required fields
 			if (!template.id) {
@@ -245,7 +318,7 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 					code: 'TEMPLATE_ERROR',
 					message: 'Template ID is required',
 					field: 'id',
-					timestamp: new Date()
+					timestamp: new Date(),
 				})
 			}
 
@@ -254,7 +327,7 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 					code: 'TEMPLATE_ERROR',
 					message: 'Template name is required',
 					field: 'name',
-					timestamp: new Date()
+					timestamp: new Date(),
 				})
 			}
 
@@ -263,7 +336,7 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 					code: 'TEMPLATE_ERROR',
 					message: 'Template category is required',
 					field: 'category',
-					timestamp: new Date()
+					timestamp: new Date(),
 				})
 			}
 
@@ -273,7 +346,7 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 					code: 'TEMPLATE_ERROR',
 					message: 'Template layout is required',
 					field: 'layout',
-					timestamp: new Date()
+					timestamp: new Date(),
 				})
 			}
 
@@ -283,7 +356,7 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 					code: 'TEMPLATE_ERROR',
 					message: 'Template must have at least one field',
 					field: 'fields',
-					timestamp: new Date()
+					timestamp: new Date(),
 				})
 			}
 
@@ -293,49 +366,59 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 					code: 'TEMPLATE_ERROR',
 					message: 'Template metadata is required',
 					field: 'metadata',
-					timestamp: new Date()
+					timestamp: new Date(),
 				})
 			}
 
 			const executionTime = performance.now() - startTime
-			
+
 			if (errors.length > 0) {
-				MCPLogger.warn('TemplateLibraryMCP.validateTemplate', 'Template validation failed', { 
-					templateId: template.id,
-					errorsCount: errors.length 
-				}, executionTime)
-				
+				MCPLogger.warn(
+					'TemplateLibraryMCP.validateTemplate',
+					'Template validation failed',
+					{
+						templateId: template.id,
+						errorsCount: errors.length,
+					},
+					executionTime
+				)
+
 				return {
 					success: false,
 					errors,
-					metadata: { executionTime }
+					metadata: { executionTime },
 				}
 			}
 
-			MCPLogger.debug('TemplateLibraryMCP.validateTemplate', 'Template validation successful', { 
-				templateId: template.id 
-			}, executionTime)
+			MCPLogger.debug(
+				'TemplateLibraryMCP.validateTemplate',
+				'Template validation successful',
+				{
+					templateId: template.id,
+				},
+				executionTime
+			)
 
 			return {
 				success: true,
 				data: true,
-				metadata: { executionTime }
+				metadata: { executionTime },
 			}
 		} catch (error) {
 			const executionTime = performance.now() - startTime
-			MCPLogger.error('TemplateLibraryMCP.validateTemplate', error as Error, { 
-				templateId: template.id, 
-				executionTime 
+			MCPLogger.error('TemplateLibraryMCP.validateTemplate', error as Error, {
+				templateId: template.id,
+				executionTime,
 			})
-			
+
 			return {
 				success: false,
 				error: {
 					code: 'VALIDATION_ERROR',
 					message: 'Failed to validate template',
 					details: { templateId: template.id, error: (error as Error).message },
-					timestamp: new Date()
-				}
+					timestamp: new Date(),
+				},
 			}
 		}
 	}
@@ -345,9 +428,12 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 	 */
 	static getTemplateCategories(): MCPResult<TemplateCategory[]> {
 		const startTime = performance.now()
-		
+
 		try {
-			MCPLogger.debug('TemplateLibraryMCP.getTemplateCategories', 'Retrieving template categories')
+			MCPLogger.debug(
+				'TemplateLibraryMCP.getTemplateCategories',
+				'Retrieving template categories'
+			)
 
 			const categories: TemplateCategory[] = [
 				'legal',
@@ -358,31 +444,40 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 				'contact',
 				'registration',
 				'feedback',
-				'custom'
+				'custom',
 			]
 
 			const executionTime = performance.now() - startTime
-			MCPLogger.debug('TemplateLibraryMCP.getTemplateCategories', 'Template categories retrieved successfully', { 
-				count: categories.length 
-			}, executionTime)
+			MCPLogger.debug(
+				'TemplateLibraryMCP.getTemplateCategories',
+				'Template categories retrieved successfully',
+				{
+					count: categories.length,
+				},
+				executionTime
+			)
 
 			return {
 				success: true,
 				data: categories,
-				metadata: { executionTime }
+				metadata: { executionTime },
 			}
 		} catch (error) {
 			const executionTime = performance.now() - startTime
-			MCPLogger.error('TemplateLibraryMCP.getTemplateCategories', error as Error, { executionTime })
-			
+			MCPLogger.error(
+				'TemplateLibraryMCP.getTemplateCategories',
+				error as Error,
+				{ executionTime }
+			)
+
 			return {
 				success: false,
 				error: {
 					code: 'CATEGORIES_ERROR',
 					message: 'Failed to retrieve template categories',
 					details: { error: (error as Error).message },
-					timestamp: new Date()
-				}
+					timestamp: new Date(),
+				},
 			}
 		}
 	}
@@ -413,20 +508,20 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 									id: 'main-column',
 									width: 12,
 									fields: ['name-field', 'email-field', 'message-field'],
-									style: {}
-								}
+									style: {},
+								},
 							],
 							style: { padding: '1rem' },
-							behavior: {}
-						}
+							behavior: {},
+						},
 					],
 					metadata: {
 						author: 'Form Flow',
 						version: '1.0.0',
 						tags: ['basic', 'single-column'],
 						responsive: true,
-						accessibility: true
-					}
+						accessibility: true,
+					},
 				},
 				fields: [
 					{
@@ -434,14 +529,14 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 						label: 'Full Name',
 						type: 'text',
 						required: true,
-						placeholder: 'Enter your full name'
+						placeholder: 'Enter your full name',
 					},
 					{
 						id: 'email-field',
 						label: 'Email Address',
 						type: 'email',
 						required: true,
-						placeholder: 'Enter your email address'
+						placeholder: 'Enter your email address',
 					},
 					{
 						id: 'message-field',
@@ -449,8 +544,8 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 						type: 'textarea',
 						required: true,
 						placeholder: 'Enter your message',
-						textareaRows: 5
-					}
+						textareaRows: 5,
+					},
 				],
 				metadata: {
 					author: 'Form Flow',
@@ -459,13 +554,14 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 					difficulty: 'beginner',
 					estimatedTime: 5,
 					features: ['Name field', 'Email validation', 'Message textarea'],
-					requirements: ['Basic form knowledge']
-				}
+					requirements: ['Basic form knowledge'],
+				},
 			},
 			{
 				id: 'registration-form-template',
 				name: 'User Registration',
-				description: 'Complete user registration form with personal and contact information',
+				description:
+					'Complete user registration form with personal and contact information',
 				category: 'registration',
 				preview: 'User registration form with personal and contact information',
 				layout: {
@@ -482,27 +578,36 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 								{
 									id: 'left-column',
 									width: 6,
-									fields: ['first-name-field', 'last-name-field', 'email-field', 'phone-field'],
-									style: { padding: '0.5rem' }
+									fields: [
+										'first-name-field',
+										'last-name-field',
+										'email-field',
+										'phone-field',
+									],
+									style: { padding: '0.5rem' },
 								},
 								{
 									id: 'right-column',
 									width: 6,
-									fields: ['password-field', 'confirm-password-field', 'terms-field'],
-									style: { padding: '0.5rem' }
-								}
+									fields: [
+										'password-field',
+										'confirm-password-field',
+										'terms-field',
+									],
+									style: { padding: '0.5rem' },
+								},
 							],
 							style: { padding: '1rem' },
-							behavior: {}
-						}
+							behavior: {},
+						},
 					],
 					metadata: {
 						author: 'Form Flow',
 						version: '1.0.0',
 						tags: ['two-column', 'organized'],
 						responsive: true,
-						accessibility: true
-					}
+						accessibility: true,
+					},
 				},
 				fields: [
 					{
@@ -510,50 +615,50 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 						label: 'First Name',
 						type: 'text',
 						required: true,
-						placeholder: 'Enter your first name'
+						placeholder: 'Enter your first name',
 					},
 					{
 						id: 'last-name-field',
 						label: 'Last Name',
 						type: 'text',
 						required: true,
-						placeholder: 'Enter your last name'
+						placeholder: 'Enter your last name',
 					},
 					{
 						id: 'email-field',
 						label: 'Email Address',
 						type: 'email',
 						required: true,
-						placeholder: 'Enter your email address'
+						placeholder: 'Enter your email address',
 					},
 					{
 						id: 'phone-field',
 						label: 'Phone Number',
 						type: 'phone',
 						required: false,
-						placeholder: '(555) 123-4567'
+						placeholder: '(555) 123-4567',
 					},
 					{
 						id: 'password-field',
 						label: 'Password',
 						type: 'password',
 						required: true,
-						placeholder: 'Enter your password'
+						placeholder: 'Enter your password',
 					},
 					{
 						id: 'confirm-password-field',
 						label: 'Confirm Password',
 						type: 'password',
 						required: true,
-						placeholder: 'Confirm your password'
+						placeholder: 'Confirm your password',
 					},
 					{
 						id: 'terms-field',
 						label: 'I agree to the terms and conditions',
 						type: 'yesno',
 						required: true,
-						options: ['Yes', 'No']
-					}
+						options: ['Yes', 'No'],
+					},
 				],
 				metadata: {
 					author: 'Form Flow',
@@ -561,9 +666,18 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 					tags: ['registration', 'user', 'account'],
 					difficulty: 'intermediate',
 					estimatedTime: 10,
-					features: ['Personal information', 'Contact details', 'Password security', 'Terms agreement'],
-					requirements: ['Email validation', 'Password confirmation', 'Terms acceptance']
-				}
+					features: [
+						'Personal information',
+						'Contact details',
+						'Password security',
+						'Terms agreement',
+					],
+					requirements: [
+						'Email validation',
+						'Password confirmation',
+						'Terms acceptance',
+					],
+				},
 			},
 			{
 				id: 'feedback-form-template',
@@ -585,21 +699,26 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 								{
 									id: 'main-column',
 									width: 12,
-									fields: ['service-rating-field', 'experience-field', 'improvements-field', 'contact-field'],
-									style: {}
-								}
+									fields: [
+										'service-rating-field',
+										'experience-field',
+										'improvements-field',
+										'contact-field',
+									],
+									style: {},
+								},
 							],
 							style: { padding: '1rem' },
-							behavior: {}
-						}
+							behavior: {},
+						},
 					],
 					metadata: {
 						author: 'Form Flow',
 						version: '1.0.0',
 						tags: ['basic', 'single-column'],
 						responsive: true,
-						accessibility: true
-					}
+						accessibility: true,
+					},
 				},
 				fields: [
 					{
@@ -608,7 +727,7 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 						type: 'rating',
 						required: true,
 						ratingMax: 5,
-						ratingIcons: 'star'
+						ratingIcons: 'star',
 					},
 					{
 						id: 'experience-field',
@@ -616,7 +735,7 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 						type: 'textarea',
 						required: true,
 						placeholder: 'Share your experience with us',
-						textareaRows: 4
+						textareaRows: 4,
 					},
 					{
 						id: 'improvements-field',
@@ -624,15 +743,15 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 						type: 'textarea',
 						required: false,
 						placeholder: 'Suggestions for improvement',
-						textareaRows: 3
+						textareaRows: 3,
 					},
 					{
 						id: 'contact-field',
 						label: 'Would you like us to contact you?',
 						type: 'yesno',
 						required: false,
-						options: ['Yes', 'No']
-					}
+						options: ['Yes', 'No'],
+					},
 				],
 				metadata: {
 					author: 'Form Flow',
@@ -640,10 +759,15 @@ export class TemplateLibraryMCP implements ITemplateLibraryProtocol {
 					tags: ['feedback', 'rating', 'customer'],
 					difficulty: 'beginner',
 					estimatedTime: 8,
-					features: ['Service rating', 'Experience feedback', 'Improvement suggestions', 'Contact preference'],
-					requirements: ['Rating system', 'Text feedback', 'Optional contact']
-				}
-			}
+					features: [
+						'Service rating',
+						'Experience feedback',
+						'Improvement suggestions',
+						'Contact preference',
+					],
+					requirements: ['Rating system', 'Text feedback', 'Optional contact'],
+				},
+			},
 		]
 	}
 }

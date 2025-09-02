@@ -1,11 +1,11 @@
 import { IComponentLibraryProtocol } from '../protocols/IComponentLibraryProtocol'
 import { MCPResult, MCPError } from '../protocols/types'
 import { MCPLogger } from './logger'
-import { 
-	ComponentLibrary, 
-	FormComponent, 
-	ComponentCategory, 
-	ComponentProps
+import {
+	ComponentLibrary,
+	FormComponent,
+	ComponentCategory,
+	ComponentProps,
 } from '@/types'
 
 export class ComponentLibraryMCP implements IComponentLibraryProtocol {
@@ -17,9 +17,12 @@ export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 	 */
 	static initialize(): MCPResult<boolean> {
 		const startTime = performance.now()
-		
+
 		try {
-			MCPLogger.info('ComponentLibraryMCP.initialize', 'Initializing component library system')
+			MCPLogger.info(
+				'ComponentLibraryMCP.initialize',
+				'Initializing component library system'
+			)
 
 			// Create default component library
 			const defaultLibrary: ComponentLibrary = {
@@ -30,7 +33,7 @@ export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 				category: 'basic',
 				components: [],
 				createdAt: new Date(),
-				updatedAt: new Date()
+				updatedAt: new Date(),
 			}
 
 			// Create default components
@@ -41,28 +44,35 @@ export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 			this.libraries = [defaultLibrary]
 
 			const executionTime = performance.now() - startTime
-			MCPLogger.info('ComponentLibraryMCP.initialize', 'Component library initialized successfully', { 
-				librariesCount: this.libraries.length,
-				componentsCount: this.components.length 
-			}, executionTime)
+			MCPLogger.info(
+				'ComponentLibraryMCP.initialize',
+				'Component library initialized successfully',
+				{
+					librariesCount: this.libraries.length,
+					componentsCount: this.components.length,
+				},
+				executionTime
+			)
 
 			return {
 				success: true,
 				data: true,
-				metadata: { executionTime }
+				metadata: { executionTime },
 			}
 		} catch (error) {
 			const executionTime = performance.now() - startTime
-			MCPLogger.error('ComponentLibraryMCP.initialize', error as Error, { executionTime })
-			
+			MCPLogger.error('ComponentLibraryMCP.initialize', error as Error, {
+				executionTime,
+			})
+
 			return {
 				success: false,
 				error: {
 					code: 'INITIALIZATION_ERROR',
 					message: 'Failed to initialize component library system',
 					details: { error: (error as Error).message },
-					timestamp: new Date()
-				}
+					timestamp: new Date(),
+				},
 			}
 		}
 	}
@@ -72,32 +82,42 @@ export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 	 */
 	static getLibraries(): MCPResult<ComponentLibrary[]> {
 		const startTime = performance.now()
-		
+
 		try {
-			MCPLogger.debug('ComponentLibraryMCP.getLibraries', 'Retrieving all component libraries')
+			MCPLogger.debug(
+				'ComponentLibraryMCP.getLibraries',
+				'Retrieving all component libraries'
+			)
 
 			const executionTime = performance.now() - startTime
-			MCPLogger.debug('ComponentLibraryMCP.getLibraries', 'Libraries retrieved successfully', { 
-				count: this.libraries.length 
-			}, executionTime)
+			MCPLogger.debug(
+				'ComponentLibraryMCP.getLibraries',
+				'Libraries retrieved successfully',
+				{
+					count: this.libraries.length,
+				},
+				executionTime
+			)
 
 			return {
 				success: true,
 				data: [...this.libraries],
-				metadata: { executionTime }
+				metadata: { executionTime },
 			}
 		} catch (error) {
 			const executionTime = performance.now() - startTime
-			MCPLogger.error('ComponentLibraryMCP.getLibraries', error as Error, { executionTime })
-			
+			MCPLogger.error('ComponentLibraryMCP.getLibraries', error as Error, {
+				executionTime,
+			})
+
 			return {
 				success: false,
 				error: {
 					code: 'LIBRARY_RETRIEVAL_ERROR',
 					message: 'Failed to retrieve component libraries',
 					details: { error: (error as Error).message },
-					timestamp: new Date()
-				}
+					timestamp: new Date(),
+				},
 			}
 		}
 	}
@@ -107,49 +127,66 @@ export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 	 */
 	static getLibrary(libraryId: string): MCPResult<ComponentLibrary> {
 		const startTime = performance.now()
-		
+
 		try {
-			MCPLogger.debug('ComponentLibraryMCP.getLibrary', 'Retrieving component library', { libraryId })
+			MCPLogger.debug(
+				'ComponentLibraryMCP.getLibrary',
+				'Retrieving component library',
+				{ libraryId }
+			)
 
 			const library = this.libraries.find(lib => lib.id === libraryId)
 			if (!library) {
 				const executionTime = performance.now() - startTime
-				MCPLogger.warn('ComponentLibraryMCP.getLibrary', 'Library not found', { libraryId }, executionTime)
-				
+				MCPLogger.warn(
+					'ComponentLibraryMCP.getLibrary',
+					'Library not found',
+					{ libraryId },
+					executionTime
+				)
+
 				return {
 					success: false,
 					error: {
 						code: 'LIBRARY_NOT_FOUND',
 						message: `Component library with ID '${libraryId}' not found`,
 						details: { libraryId },
-						timestamp: new Date()
-					}
+						timestamp: new Date(),
+					},
 				}
 			}
 
 			const executionTime = performance.now() - startTime
-			MCPLogger.debug('ComponentLibraryMCP.getLibrary', 'Library retrieved successfully', { 
-				libraryId,
-				componentsCount: library.components.length 
-			}, executionTime)
+			MCPLogger.debug(
+				'ComponentLibraryMCP.getLibrary',
+				'Library retrieved successfully',
+				{
+					libraryId,
+					componentsCount: library.components.length,
+				},
+				executionTime
+			)
 
 			return {
 				success: true,
 				data: { ...library },
-				metadata: { executionTime }
+				metadata: { executionTime },
 			}
 		} catch (error) {
 			const executionTime = performance.now() - startTime
-			MCPLogger.error('ComponentLibraryMCP.getLibrary', error as Error, { libraryId, executionTime })
-			
+			MCPLogger.error('ComponentLibraryMCP.getLibrary', error as Error, {
+				libraryId,
+				executionTime,
+			})
+
 			return {
 				success: false,
 				error: {
 					code: 'LIBRARY_RETRIEVAL_ERROR',
 					message: 'Failed to retrieve component library',
 					details: { libraryId, error: (error as Error).message },
-					timestamp: new Date()
-				}
+					timestamp: new Date(),
+				},
 			}
 		}
 	}
@@ -157,37 +194,54 @@ export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 	/**
 	 * Get components by category
 	 */
-	static getComponentsByCategory(category: ComponentCategory): MCPResult<FormComponent[]> {
+	static getComponentsByCategory(
+		category: ComponentCategory
+	): MCPResult<FormComponent[]> {
 		const startTime = performance.now()
-		
-		try {
-			MCPLogger.debug('ComponentLibraryMCP.getComponentsByCategory', 'Retrieving components by category', { category })
 
-			const components = this.components.filter(comp => comp.category === category)
+		try {
+			MCPLogger.debug(
+				'ComponentLibraryMCP.getComponentsByCategory',
+				'Retrieving components by category',
+				{ category }
+			)
+
+			const components = this.components.filter(
+				comp => comp.category === category
+			)
 
 			const executionTime = performance.now() - startTime
-			MCPLogger.debug('ComponentLibraryMCP.getComponentsByCategory', 'Components retrieved successfully', { 
-				category,
-				count: components.length 
-			}, executionTime)
+			MCPLogger.debug(
+				'ComponentLibraryMCP.getComponentsByCategory',
+				'Components retrieved successfully',
+				{
+					category,
+					count: components.length,
+				},
+				executionTime
+			)
 
 			return {
 				success: true,
 				data: [...components],
-				metadata: { executionTime }
+				metadata: { executionTime },
 			}
 		} catch (error) {
 			const executionTime = performance.now() - startTime
-			MCPLogger.error('ComponentLibraryMCP.getComponentsByCategory', error as Error, { category, executionTime })
-			
+			MCPLogger.error(
+				'ComponentLibraryMCP.getComponentsByCategory',
+				error as Error,
+				{ category, executionTime }
+			)
+
 			return {
 				success: false,
 				error: {
 					code: 'COMPONENT_RETRIEVAL_ERROR',
 					message: 'Failed to retrieve components by category',
 					details: { category, error: (error as Error).message },
-					timestamp: new Date()
-				}
+					timestamp: new Date(),
+				},
 			}
 		}
 	}
@@ -197,46 +251,63 @@ export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 	 */
 	static getComponent(componentId: string): MCPResult<FormComponent> {
 		const startTime = performance.now()
-		
+
 		try {
-			MCPLogger.debug('ComponentLibraryMCP.getComponent', 'Retrieving component', { componentId })
+			MCPLogger.debug(
+				'ComponentLibraryMCP.getComponent',
+				'Retrieving component',
+				{ componentId }
+			)
 
 			const component = this.components.find(comp => comp.id === componentId)
 			if (!component) {
 				const executionTime = performance.now() - startTime
-				MCPLogger.warn('ComponentLibraryMCP.getComponent', 'Component not found', { componentId }, executionTime)
-				
+				MCPLogger.warn(
+					'ComponentLibraryMCP.getComponent',
+					'Component not found',
+					{ componentId },
+					executionTime
+				)
+
 				return {
 					success: false,
 					error: {
 						code: 'COMPONENT_NOT_FOUND',
 						message: `Component with ID '${componentId}' not found`,
 						details: { componentId },
-						timestamp: new Date()
-					}
+						timestamp: new Date(),
+					},
 				}
 			}
 
 			const executionTime = performance.now() - startTime
-			MCPLogger.debug('ComponentLibraryMCP.getComponent', 'Component retrieved successfully', { componentId }, executionTime)
+			MCPLogger.debug(
+				'ComponentLibraryMCP.getComponent',
+				'Component retrieved successfully',
+				{ componentId },
+				executionTime
+			)
 
 			return {
 				success: true,
 				data: { ...component },
-				metadata: { executionTime }
+				metadata: { executionTime },
 			}
 		} catch (error) {
 			const executionTime = performance.now() - startTime
-			MCPLogger.error('ComponentLibraryMCP.getComponent', error as Error, { componentId, executionTime })
-			
+			MCPLogger.error('ComponentLibraryMCP.getComponent', error as Error, {
+				componentId,
+				executionTime,
+			})
+
 			return {
 				success: false,
 				error: {
 					code: 'COMPONENT_RETRIEVAL_ERROR',
 					message: 'Failed to retrieve component',
 					details: { componentId, error: (error as Error).message },
-					timestamp: new Date()
-				}
+					timestamp: new Date(),
+				},
 			}
 		}
 	}
@@ -246,40 +317,53 @@ export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 	 */
 	static searchComponents(query: string): MCPResult<FormComponent[]> {
 		const startTime = performance.now()
-		
+
 		try {
-			MCPLogger.debug('ComponentLibraryMCP.searchComponents', 'Searching components', { query })
+			MCPLogger.debug(
+				'ComponentLibraryMCP.searchComponents',
+				'Searching components',
+				{ query }
+			)
 
 			const searchTerm = query.toLowerCase()
-			const results = this.components.filter(comp => 
-				comp.name.toLowerCase().includes(searchTerm) ||
-				comp.description.toLowerCase().includes(searchTerm) ||
-				comp.metadata.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+			const results = this.components.filter(
+				comp =>
+					comp.name.toLowerCase().includes(searchTerm) ||
+					comp.description.toLowerCase().includes(searchTerm) ||
+					comp.metadata.tags.some(tag => tag.toLowerCase().includes(searchTerm))
 			)
 
 			const executionTime = performance.now() - startTime
-			MCPLogger.debug('ComponentLibraryMCP.searchComponents', 'Search completed successfully', { 
-				query,
-				resultsCount: results.length 
-			}, executionTime)
+			MCPLogger.debug(
+				'ComponentLibraryMCP.searchComponents',
+				'Search completed successfully',
+				{
+					query,
+					resultsCount: results.length,
+				},
+				executionTime
+			)
 
 			return {
 				success: true,
 				data: [...results],
-				metadata: { executionTime }
+				metadata: { executionTime },
 			}
 		} catch (error) {
 			const executionTime = performance.now() - startTime
-			MCPLogger.error('ComponentLibraryMCP.searchComponents', error as Error, { query, executionTime })
-			
+			MCPLogger.error('ComponentLibraryMCP.searchComponents', error as Error, {
+				query,
+				executionTime,
+			})
+
 			return {
 				success: false,
 				error: {
 					code: 'SEARCH_ERROR',
 					message: 'Failed to search components',
 					details: { query, error: (error as Error).message },
-					timestamp: new Date()
-				}
+					timestamp: new Date(),
+				},
 			}
 		}
 	}
@@ -292,7 +376,11 @@ export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 		const errors: MCPError[] = []
 
 		try {
-			MCPLogger.debug('ComponentLibraryMCP.validateComponent', 'Validating component', { componentId: component.id })
+			MCPLogger.debug(
+				'ComponentLibraryMCP.validateComponent',
+				'Validating component',
+				{ componentId: component.id }
+			)
 
 			// Validate required fields
 			if (!component.id) {
@@ -300,7 +388,7 @@ export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 					code: 'COMPONENT_ERROR',
 					message: 'Component ID is required',
 					field: 'id',
-					timestamp: new Date()
+					timestamp: new Date(),
 				})
 			}
 
@@ -309,7 +397,7 @@ export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 					code: 'COMPONENT_ERROR',
 					message: 'Component name is required',
 					field: 'name',
-					timestamp: new Date()
+					timestamp: new Date(),
 				})
 			}
 
@@ -318,7 +406,7 @@ export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 					code: 'COMPONENT_ERROR',
 					message: 'Component type is required',
 					field: 'type',
-					timestamp: new Date()
+					timestamp: new Date(),
 				})
 			}
 
@@ -327,57 +415,73 @@ export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 					code: 'COMPONENT_ERROR',
 					message: 'Component category is required',
 					field: 'category',
-					timestamp: new Date()
+					timestamp: new Date(),
 				})
 			}
 
 			// Validate component props
 			if (component.props) {
-				const propsValidation = this.validateComponentProps(component.id, component.props)
+				const propsValidation = this.validateComponentProps(
+					component.id,
+					component.props
+				)
 				if (!propsValidation.success && propsValidation.error) {
 					errors.push(propsValidation.error)
 				}
 			}
 
 			const executionTime = performance.now() - startTime
-			
+
 			if (errors.length > 0) {
-				MCPLogger.warn('ComponentLibraryMCP.validateComponent', 'Component validation failed', { 
-					componentId: component.id,
-					errorsCount: errors.length 
-				}, executionTime)
-				
+				MCPLogger.warn(
+					'ComponentLibraryMCP.validateComponent',
+					'Component validation failed',
+					{
+						componentId: component.id,
+						errorsCount: errors.length,
+					},
+					executionTime
+				)
+
 				return {
 					success: false,
 					errors,
-					metadata: { executionTime }
+					metadata: { executionTime },
 				}
 			}
 
-			MCPLogger.debug('ComponentLibraryMCP.validateComponent', 'Component validation successful', { 
-				componentId: component.id 
-			}, executionTime)
+			MCPLogger.debug(
+				'ComponentLibraryMCP.validateComponent',
+				'Component validation successful',
+				{
+					componentId: component.id,
+				},
+				executionTime
+			)
 
 			return {
 				success: true,
 				data: true,
-				metadata: { executionTime }
+				metadata: { executionTime },
 			}
 		} catch (error) {
 			const executionTime = performance.now() - startTime
-			MCPLogger.error('ComponentLibraryMCP.validateComponent', error as Error, { 
-				componentId: component.id, 
-				executionTime 
+			MCPLogger.error('ComponentLibraryMCP.validateComponent', error as Error, {
+				componentId: component.id,
+				executionTime,
 			})
-			
+
 			return {
 				success: false,
 				error: {
 					code: 'VALIDATION_ERROR',
 					message: 'Failed to validate component',
-					details: { componentId: component.id, error: (error as Error).message },
-					timestamp: new Date()
-				}
+					details: {
+						componentId: component.id,
+						error: (error as Error).message,
+					},
+					timestamp: new Date(),
+				},
 			}
 		}
 	}
@@ -385,12 +489,19 @@ export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 	/**
 	 * Validate component props
 	 */
-	static validateComponentProps(componentId: string, props: ComponentProps): MCPResult<boolean> {
+	static validateComponentProps(
+		componentId: string,
+		props: ComponentProps
+	): MCPResult<boolean> {
 		const startTime = performance.now()
 		const errors: MCPError[] = []
 
 		try {
-			MCPLogger.debug('ComponentLibraryMCP.validateComponentProps', 'Validating component props', { componentId })
+			MCPLogger.debug(
+				'ComponentLibraryMCP.validateComponentProps',
+				'Validating component props',
+				{ componentId }
+			)
 
 			// Validate required props
 			if (props.required === undefined) {
@@ -398,7 +509,7 @@ export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 					code: 'PROPS_ERROR',
 					message: 'Required property is mandatory',
 					field: 'required',
-					timestamp: new Date()
+					timestamp: new Date(),
 				})
 			}
 
@@ -408,49 +519,63 @@ export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 					code: 'PROPS_ERROR',
 					message: 'Options array cannot be empty',
 					field: 'options',
-					timestamp: new Date()
+					timestamp: new Date(),
 				})
 			}
 
 			const executionTime = performance.now() - startTime
-			
+
 			if (errors.length > 0) {
-				MCPLogger.warn('ComponentLibraryMCP.validateComponentProps', 'Props validation failed', { 
-					componentId,
-					errorsCount: errors.length 
-				}, executionTime)
-				
+				MCPLogger.warn(
+					'ComponentLibraryMCP.validateComponentProps',
+					'Props validation failed',
+					{
+						componentId,
+						errorsCount: errors.length,
+					},
+					executionTime
+				)
+
 				return {
 					success: false,
 					errors,
-					metadata: { executionTime }
+					metadata: { executionTime },
 				}
 			}
 
-			MCPLogger.debug('ComponentLibraryMCP.validateComponentProps', 'Props validation successful', { 
-				componentId 
-			}, executionTime)
+			MCPLogger.debug(
+				'ComponentLibraryMCP.validateComponentProps',
+				'Props validation successful',
+				{
+					componentId,
+				},
+				executionTime
+			)
 
 			return {
 				success: true,
 				data: true,
-				metadata: { executionTime }
+				metadata: { executionTime },
 			}
 		} catch (error) {
 			const executionTime = performance.now() - startTime
-			MCPLogger.error('ComponentLibraryMCP.validateComponentProps', error as Error, { 
-				componentId, 
-				executionTime 
-			})
-			
+			MCPLogger.error(
+				'ComponentLibraryMCP.validateComponentProps',
+				error as Error,
+				{
+					componentId,
+					executionTime,
+				}
+			)
+
 			return {
 				success: false,
 				error: {
 					code: 'PROPS_VALIDATION_ERROR',
 					message: 'Failed to validate component props',
 					details: { componentId, error: (error as Error).message },
-					timestamp: new Date()
-				}
+					timestamp: new Date(),
+				},
 			}
 		}
 	}
@@ -472,38 +597,35 @@ export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 					required: false,
 					placeholder: 'Enter text...',
 					validation: {
-						rules: [
-							{ type: 'required', message: 'This field is required' }
-						],
+						rules: [{ type: 'required', message: 'This field is required' }],
 						messages: {
 							required: 'This field is required',
-							invalid: 'Please enter valid text'
-						}
-					}
+							invalid: 'Please enter valid text',
+						},
+					},
 				},
 				validation: {
-					rules: [
-						{ type: 'required', message: 'This field is required' }
-					],
+					rules: [{ type: 'required', message: 'This field is required' }],
 					messages: {
 						required: 'This field is required',
-						invalid: 'Please enter valid text'
-					}
+						invalid: 'Please enter valid text',
+					},
 				},
 				metadata: {
 					author: 'Form Flow',
 					version: '1.0.0',
 					tags: ['input', 'text', 'basic'],
-					documentation: 'Basic text input component for single-line text entry',
+					documentation:
+						'Basic text input component for single-line text entry',
 					examples: [
 						{
 							title: 'Basic Text Input',
 							description: 'Simple text input with placeholder',
 							props: { placeholder: 'Enter your name' },
-							code: '<TextInput placeholder="Enter your name" />'
-						}
-					]
-				}
+							code: '<TextInput placeholder="Enter your name" />',
+						},
+					],
+				},
 			},
 			{
 				id: 'email-input',
@@ -518,22 +640,22 @@ export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 					placeholder: 'Enter email address...',
 					validation: {
 						rules: [
-							{ type: 'email', message: 'Please enter a valid email address' }
+							{ type: 'email', message: 'Please enter a valid email address' },
 						],
 						messages: {
 							required: 'Email is required',
-							invalid: 'Please enter a valid email address'
-						}
-					}
+							invalid: 'Please enter a valid email address',
+						},
+					},
 				},
 				validation: {
 					rules: [
-						{ type: 'email', message: 'Please enter a valid email address' }
+						{ type: 'email', message: 'Please enter a valid email address' },
 					],
 					messages: {
 						required: 'Email is required',
-						invalid: 'Please enter a valid email address'
-					}
+						invalid: 'Please enter a valid email address',
+					},
 				},
 				metadata: {
 					author: 'Form Flow',
@@ -545,10 +667,10 @@ export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 							title: 'Email Input',
 							description: 'Email input with validation',
 							props: { placeholder: 'Enter your email' },
-							code: '<EmailInput placeholder="Enter your email" required />'
-						}
-					]
-				}
+							code: '<EmailInput placeholder="Enter your email" required />',
+						},
+					],
+				},
 			},
 			{
 				id: 'money-input',
@@ -562,38 +684,35 @@ export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 					required: false,
 					placeholder: '$0.00',
 					validation: {
-						rules: [
-							{ type: 'number', message: 'Please enter a valid amount' }
-						],
+						rules: [{ type: 'number', message: 'Please enter a valid amount' }],
 						messages: {
 							required: 'Amount is required',
-							invalid: 'Please enter a valid amount'
-						}
-					}
+							invalid: 'Please enter a valid amount',
+						},
+					},
 				},
 				validation: {
-					rules: [
-						{ type: 'number', message: 'Please enter a valid amount' }
-					],
+					rules: [{ type: 'number', message: 'Please enter a valid amount' }],
 					messages: {
 						required: 'Amount is required',
-						invalid: 'Please enter a valid amount'
-					}
+						invalid: 'Please enter a valid amount',
+					},
 				},
 				metadata: {
 					author: 'Form Flow',
 					version: '1.0.0',
 					tags: ['input', 'money', 'currency', 'financial'],
-					documentation: 'Money input component with currency formatting and validation',
+					documentation:
+						'Money input component with currency formatting and validation',
 					examples: [
 						{
 							title: 'Money Input',
 							description: 'Currency input with dollar formatting',
 							props: { placeholder: '$0.00', currency: 'USD' },
-							code: '<MoneyInput placeholder="$0.00" currency="USD" />'
-						}
-					]
-				}
+							code: '<MoneyInput placeholder="$0.00" currency="USD" />',
+						},
+					],
+				},
 			},
 			{
 				id: 'phone-input',
@@ -608,38 +727,47 @@ export class ComponentLibraryMCP implements IComponentLibraryProtocol {
 					placeholder: '(555) 123-4567',
 					validation: {
 						rules: [
-							{ type: 'pattern', value: '^[\\d\\s\\-\\(\\)\\+]+$', message: 'Please enter a valid phone number' }
+							{
+								type: 'pattern',
+								value: '^[\\d\\s\\-\\(\\)\\+]+$',
+								message: 'Please enter a valid phone number',
+							},
 						],
 						messages: {
 							required: 'Phone number is required',
-							invalid: 'Please enter a valid phone number'
-						}
-					}
+							invalid: 'Please enter a valid phone number',
+						},
+					},
 				},
 				validation: {
 					rules: [
-						{ type: 'pattern', value: '^[\\d\\s\\-\\(\\)\\+]+$', message: 'Please enter a valid phone number' }
+						{
+							type: 'pattern',
+							value: '^[\\d\\s\\-\\(\\)\\+]+$',
+							message: 'Please enter a valid phone number',
+						},
 					],
 					messages: {
 						required: 'Phone number is required',
-						invalid: 'Please enter a valid phone number'
-					}
+						invalid: 'Please enter a valid phone number',
+					},
 				},
 				metadata: {
 					author: 'Form Flow',
 					version: '1.0.0',
 					tags: ['input', 'phone', 'contact', 'formatting'],
-					documentation: 'Phone input component with automatic formatting and validation',
+					documentation:
+						'Phone input component with automatic formatting and validation',
 					examples: [
 						{
 							title: 'Phone Input',
 							description: 'Phone input with US formatting',
 							props: { placeholder: '(555) 123-4567' },
-							code: '<PhoneInput placeholder="(555) 123-4567" />'
-						}
-					]
-				}
-			}
+							code: '<PhoneInput placeholder="(555) 123-4567" />',
+						},
+					],
+				},
+			},
 		]
 	}
 }

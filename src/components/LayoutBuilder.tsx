@@ -18,12 +18,13 @@ interface LayoutBuilderProps {
 export default function LayoutBuilder({
 	className = '',
 	selectedLayout,
-	onLayoutSelect
+	onLayoutSelect,
 }: LayoutBuilderProps) {
 	const [layouts, setLayouts] = useState<FormLayout[]>([])
 	const [isLoading, setIsLoading] = useState(true)
 	const [error, setError] = useState<string>('')
-	const [selectedLayoutType, setSelectedLayoutType] = useState<LayoutType | null>(null)
+	const [selectedLayoutType, setSelectedLayoutType] =
+		useState<LayoutType | null>(null)
 
 	// Initialize layout system
 	useEffect(() => {
@@ -35,16 +36,23 @@ export default function LayoutBuilder({
 				// Initialize the layout system
 				const initResult = LayoutSystemMCP.initialize()
 				if (!initResult.success) {
-					throw new Error(initResult.error?.message || 'Failed to initialize layout system')
+					throw new Error(
+						initResult.errors?.[0]?.message ||
+							'Failed to initialize layout system'
+					)
 				}
 
 				// Get all layouts
 				const layoutsResult = LayoutSystemMCP.getLayouts()
 				if (!layoutsResult.success) {
-					throw new Error(layoutsResult.error?.message || 'Failed to get layouts')
+					throw new Error(
+						layoutsResult.errors?.[0]?.message || 'Failed to get layouts'
+					)
 				}
 
-				setLayouts(layoutsResult.data)
+				if (layoutsResult.data) {
+					setLayouts(layoutsResult.data)
+				}
 			} catch (err) {
 				setError(err instanceof Error ? err.message : 'Failed to load layouts')
 			} finally {
@@ -56,13 +64,16 @@ export default function LayoutBuilder({
 	}, [])
 
 	// Filter layouts by type
-	const filteredLayouts = selectedLayoutType 
+	const filteredLayouts = selectedLayoutType
 		? layouts.filter(layout => layout.type === selectedLayoutType)
 		: layouts
 
-	const handleLayoutSelect = useCallback((layout: FormLayout) => {
-		onLayoutSelect?.(layout)
-	}, [onLayoutSelect])
+	const handleLayoutSelect = useCallback(
+		(layout: FormLayout) => {
+			onLayoutSelect?.(layout)
+		},
+		[onLayoutSelect]
+	)
 
 	const handleLayoutTypeChange = useCallback((type: LayoutType | null) => {
 		setSelectedLayoutType(type)
@@ -102,15 +113,19 @@ export default function LayoutBuilder({
 		}
 	}
 
-
-
 	const layoutTypeOptions = [
 		{ label: 'All Types', value: null },
-		...Object.values(['single-column', 'two-column', 'three-column', 'grid', 'custom'] as LayoutType[]).map(type => ({
+		...Object.values([
+			'single-column',
+			'two-column',
+			'three-column',
+			'grid',
+			'custom',
+		] as LayoutType[]).map(type => ({
 			label: getLayoutTypeLabel(type),
 			value: type,
-			icon: getLayoutTypeIcon(type)
-		}))
+			icon: getLayoutTypeIcon(type),
+		})),
 	]
 
 	const renderLayoutPreview = (layout: FormLayout) => {
@@ -118,17 +133,17 @@ export default function LayoutBuilder({
 			<div className='layout-preview p-2 border border-gray-600 rounded'>
 				<div className='text-xs text-gray-400 mb-2'>{layout.name}</div>
 				<div className='space-y-1'>
-					{layout.sections.map((section) => (
+					{layout.sections.map(section => (
 						<div key={section.id} className='section-preview'>
 							<div className='text-xs text-gray-500 mb-1'>{section.name}</div>
 							<div className='flex gap-1'>
-								{section.columns.map((column) => (
+								{section.columns.map(column => (
 									<div
 										key={column.id}
 										className='column-preview bg-blue-100 border border-blue-300 rounded'
-										style={{ 
+										style={{
 											width: `${(column.width / 12) * 100}%`,
-											height: '20px'
+											height: '20px',
 										}}
 									>
 										<div className='text-xs text-blue-600 text-center leading-5'>
@@ -188,7 +203,7 @@ export default function LayoutBuilder({
 				<Dropdown
 					value={selectedLayoutType}
 					options={layoutTypeOptions}
-					onChange={(e) => handleLayoutTypeChange(e.value)}
+					onChange={e => handleLayoutTypeChange(e.value)}
 					optionLabel='label'
 					optionValue='value'
 					className='w-full'
@@ -199,22 +214,32 @@ export default function LayoutBuilder({
 			{/* Layouts Grid */}
 			<ScrollPanel style={{ height: '400px' }} className='custom-scrollbar'>
 				<div className='space-y-3'>
-					{filteredLayouts.map((layout) => (
+					{filteredLayouts.map(layout => (
 						<Card
 							key={layout.id}
 							className={`layout-card cursor-pointer hover:shadow-lg transition-all duration-200 ${
-								selectedLayout?.id === layout.id ? 'border-blue-400 bg-blue-50' : ''
+								selectedLayout?.id === layout.id
+									? 'border-blue-400 bg-blue-50'
+									: ''
 							}`}
 							onClick={() => handleLayoutSelect(layout)}
 						>
 							<div className='p-3'>
 								<div className='flex justify-between items-start mb-3'>
 									<div>
-										<h4 className='text-white font-medium mb-1'>{layout.name}</h4>
-										<p className='text-gray-300 text-sm mb-2'>{layout.description}</p>
+										<h4 className='text-white font-medium mb-1'>
+											{layout.name}
+										</h4>
+										<p className='text-gray-300 text-sm mb-2'>
+											{layout.description}
+										</p>
 									</div>
 									<div className='flex items-center gap-2'>
-										<i className={`${getLayoutTypeIcon(layout.type)} text-blue-400`} />
+										<i
+											className={`${getLayoutTypeIcon(
+												layout.type
+											)} text-blue-400`}
+										/>
 										<Badge
 											value={getLayoutTypeLabel(layout.type)}
 											severity='secondary'
@@ -224,13 +249,14 @@ export default function LayoutBuilder({
 								</div>
 
 								{/* Layout Preview */}
-								<div className='mb-3'>
-									{renderLayoutPreview(layout)}
-								</div>
+								<div className='mb-3'>{renderLayoutPreview(layout)}</div>
 
 								{/* Layout Info */}
 								<div className='flex justify-between items-center text-xs text-gray-400'>
-									<span>{layout.sections.length} section{layout.sections.length !== 1 ? 's' : ''}</span>
+									<span>
+										{layout.sections.length} section
+										{layout.sections.length !== 1 ? 's' : ''}
+									</span>
 									<span>v{layout.metadata.version}</span>
 								</div>
 
@@ -255,10 +281,9 @@ export default function LayoutBuilder({
 						<i className='pi pi-th-large text-4xl text-gray-400 mb-3' />
 						<h4 className='text-white mb-2'>No Layouts Found</h4>
 						<p className='text-gray-300'>
-							{selectedLayoutType 
+							{selectedLayoutType
 								? 'No layouts available for this type'
-								: 'No layouts available'
-							}
+								: 'No layouts available'}
 						</p>
 					</div>
 				)}
@@ -268,10 +293,13 @@ export default function LayoutBuilder({
 			<div className='border-t border-gray-700 pt-3 mt-4'>
 				<div className='flex justify-between items-center text-sm text-gray-400'>
 					<span>
-						{filteredLayouts.length} layout{filteredLayouts.length !== 1 ? 's' : ''} available
+						{filteredLayouts.length} layout
+						{filteredLayouts.length !== 1 ? 's' : ''} available
 					</span>
 					<span>
-						{selectedLayoutType ? getLayoutTypeLabel(selectedLayoutType) : 'All Types'}
+						{selectedLayoutType
+							? getLayoutTypeLabel(selectedLayoutType)
+							: 'All Types'}
 					</span>
 				</div>
 			</div>
