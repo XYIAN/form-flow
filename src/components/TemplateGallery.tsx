@@ -180,18 +180,7 @@ export default function TemplateGallery({
 		}
 	}
 
-	const getDifficultyIcon = (difficulty: 'beginner' | 'intermediate' | 'advanced'): string => {
-		switch (difficulty) {
-			case 'beginner':
-				return 'pi pi-star'
-			case 'intermediate':
-				return 'pi pi-star-fill'
-			case 'advanced':
-				return 'pi pi-star-fill'
-			default:
-				return 'pi pi-circle'
-		}
-	}
+
 
 	const categoryOptions = categories.map(category => ({
 		label: getCategoryLabel(category),

@@ -1,11 +1,9 @@
-import { MCPResult, MCPError } from './types'
+import { MCPResult } from './types'
 import { 
 	FormLayout, 
 	FormSection, 
 	FormColumn, 
-	LayoutType, 
-	SectionType,
-	LayoutMetadata 
+	LayoutType
 } from '@/types'
 
 export interface ILayoutSystemProtocol {

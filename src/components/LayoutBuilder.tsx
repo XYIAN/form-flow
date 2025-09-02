@@ -7,28 +7,18 @@ import { Dropdown } from 'primereact/dropdown'
 import { Badge } from 'primereact/badge'
 import { ScrollPanel } from 'primereact/scrollpanel'
 import { LayoutSystemMCP } from '@/lib/mcp'
-import { FormLayout, LayoutType, FormSection, FormColumn } from '@/types'
+import { FormLayout, LayoutType } from '@/types'
 
 interface LayoutBuilderProps {
 	className?: string
 	selectedLayout?: FormLayout
 	onLayoutSelect?: (layout: FormLayout) => void
-	onLayoutChange?: (layout: FormLayout) => void
-	onSectionAdd?: (section: FormSection) => void
-	onSectionRemove?: (sectionId: string) => void
-	onColumnAdd?: (sectionId: string, column: FormColumn) => void
-	onColumnRemove?: (columnId: string) => void
 }
 
 export default function LayoutBuilder({
 	className = '',
 	selectedLayout,
-	onLayoutSelect,
-	onLayoutChange,
-	onSectionAdd,
-	onSectionRemove,
-	onColumnAdd,
-	onColumnRemove
+	onLayoutSelect
 }: LayoutBuilderProps) {
 	const [layouts, setLayouts] = useState<FormLayout[]>([])
 	const [isLoading, setIsLoading] = useState(true)
@@ -112,22 +102,7 @@ export default function LayoutBuilder({
 		}
 	}
 
-	const getLayoutTypeDescription = (type: LayoutType): string => {
-		switch (type) {
-			case 'single-column':
-				return 'Simple single-column layout for basic forms'
-			case 'two-column':
-				return 'Two-column layout for organized forms'
-			case 'three-column':
-				return 'Three-column layout for complex forms'
-			case 'grid':
-				return 'Flexible grid layout for dynamic forms'
-			case 'custom':
-				return 'Custom layout with your own configuration'
-			default:
-				return 'Layout template'
-		}
-	}
+
 
 	const layoutTypeOptions = [
 		{ label: 'All Types', value: null },
@@ -143,11 +118,11 @@ export default function LayoutBuilder({
 			<div className='layout-preview p-2 border border-gray-600 rounded'>
 				<div className='text-xs text-gray-400 mb-2'>{layout.name}</div>
 				<div className='space-y-1'>
-					{layout.sections.map((section, sectionIndex) => (
+					{layout.sections.map((section) => (
 						<div key={section.id} className='section-preview'>
 							<div className='text-xs text-gray-500 mb-1'>{section.name}</div>
 							<div className='flex gap-1'>
-								{section.columns.map((column, columnIndex) => (
+								{section.columns.map((column) => (
 									<div
 										key={column.id}
 										className='column-preview bg-blue-100 border border-blue-300 rounded'

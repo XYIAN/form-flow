@@ -1,4 +1,4 @@
-import { MCPResult, MCPError } from './types'
+import { MCPResult } from './types'
 import { 
 	ComponentLibrary, 
 	FormComponent, 
@@ -124,6 +124,6 @@ export interface IComponentLibraryProtocol {
 interface ComponentExample {
 	title: string
 	description: string
-	props: Record<string, any>
+	props: Record<string, unknown>
 	code: string
 }

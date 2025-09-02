@@ -1,4 +1,4 @@
-import { MCPResult, MCPError } from './types'
+import { MCPResult } from './types'
 import { 
 	FormTemplate, 
 	TemplateCategory, 

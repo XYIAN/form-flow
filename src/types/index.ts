@@ -210,7 +210,7 @@ export interface ComponentValidation {
 
 export interface ValidationRule {
 	type: 'required' | 'min' | 'max' | 'pattern' | 'email' | 'url' | 'number'
-	value?: any
+	value?: string | number
 	message: string
 }
 
@@ -250,7 +250,7 @@ export interface ComponentMetadata {
 export interface ComponentExample {
 	title: string
 	description: string
-	props: Record<string, any>
+	props: Record<string, unknown>
 	code: string
 }
 

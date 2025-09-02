@@ -367,8 +367,7 @@ export class FormGeneratorMCP {
 	 */
 	static previewFormGeneration(
 		csvContent: string,
-		// eslint-disable-line @typescript-eslint/no-unused-vars
-		_options: FormGenerationOptions = {}
+		_options: FormGenerationOptions = {} // eslint-disable-line @typescript-eslint/no-unused-vars
 	): MCPResult<FormPreview> {
 		const tracker = MCPLogger.createPerformanceTracker('previewFormGeneration')
 
@@ -505,8 +504,7 @@ export class FormGeneratorMCP {
 	}
 
 	private static determineRequired(
-		// eslint-disable-line @typescript-eslint/no-unused-vars
-		_dataType: unknown, 
+		_dataType: unknown, // eslint-disable-line @typescript-eslint/no-unused-vars
 		confidence: number
 	): boolean {
 		// Consider field required if:
@@ -599,7 +597,7 @@ export class FormGeneratorMCP {
 	private static generateValidation(
 		fieldType: FieldType,
 		detection: FieldTypeDetectionResult,
-		dataType: any
+		dataType: unknown // eslint-disable-line @typescript-eslint/no-unused-vars
 	): FormField['validation'] {
 		const validation: FormField['validation'] = {}
 
@@ -631,10 +629,8 @@ export class FormGeneratorMCP {
 
 	private static addFieldSpecificProperties(
 		field: FormField,
-		// eslint-disable-line @typescript-eslint/no-unused-vars
-		_detection: FieldTypeDetectionResult,
-		// eslint-disable-line @typescript-eslint/no-unused-vars
-		_dataType: unknown
+		_detection: FieldTypeDetectionResult, // eslint-disable-line @typescript-eslint/no-unused-vars
+		_dataType: unknown // eslint-disable-line @typescript-eslint/no-unused-vars
 	): void {
 		// Add field-specific properties based on type and detection
 		switch (field.type) {

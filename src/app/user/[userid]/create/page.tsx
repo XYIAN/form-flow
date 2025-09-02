@@ -11,7 +11,7 @@ import { FileUpload } from 'primereact/fileupload'
 import { Message } from 'primereact/message'
 import { useAuth } from '@/context/AuthContext'
 import { useForms } from '@/context/FormContext'
-import { FormField, FieldType } from '@/types'
+import { FormField, FieldType, FormComponent, FormLayout, FormTemplate } from '@/types'
 import { FIELD_TYPES, FIELD_CATEGORIES } from '@/constants'
 import { generateId } from '@/utils'
 import { FieldMCP, MCPLogger, FormGeneratorMCP, CSVParserMCP } from '@/lib/mcp'
@@ -231,7 +231,7 @@ export default function CreateForm({ params }: CreateFormProps) {
 	}
 
 	// Advanced Form Builder Handlers
-	const handleComponentSelect = (component: any) => {
+	const handleComponentSelect = (component: FormComponent) => {
 		setSelectedComponent(component)
 		// Auto-fill form with component data
 		setFieldType(component.type)
@@ -244,19 +244,19 @@ export default function CreateForm({ params }: CreateFormProps) {
 		setActiveTab('manual') // Switch to manual tab to show the configured field
 	}
 
-	const handleLayoutSelect = (layout: any) => {
+	const handleLayoutSelect = (layout: FormLayout) => {
 		setSelectedLayout(layout)
 		// TODO: Apply layout to form structure
 		console.log('Selected layout:', layout)
 	}
 
-	const handleTemplateSelect = (template: any) => {
+	const handleTemplateSelect = (template: FormTemplate) => {
 		setSelectedTemplate(template)
 		// TODO: Preview template
 		console.log('Selected template:', template)
 	}
 
-	const handleTemplateUse = (template: any) => {
+	const handleTemplateUse = (template: FormTemplate) => {
 		setSelectedTemplate(template)
 		// Apply template to form
 		setTitle(template.name)

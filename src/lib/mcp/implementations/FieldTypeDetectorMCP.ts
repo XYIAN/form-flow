@@ -632,8 +632,7 @@ export class FieldTypeDetectorMCP {
 	}
 
 	private static detectByContextual(
-		// eslint-disable-line @typescript-eslint/no-unused-vars
-		_context: DetectionContext
+		_context: DetectionContext // eslint-disable-line @typescript-eslint/no-unused-vars
 	): FieldTypeDetectionResult {
 		// This would use contextual hints from the user or surrounding data
 		// For now, return a neutral result
