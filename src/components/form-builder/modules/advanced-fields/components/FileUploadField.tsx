@@ -40,20 +40,29 @@ export default function FileUploadField({
 
 	const config: FileUploadConfig = {
 		maxFileSize: field.maxFileSize || 5000000, // 5MB default
-		allowedExtensions: field.allowedExtensions || ['.pdf', '.doc', '.docx', '.jpg', '.png'],
+		allowedExtensions: field.allowedExtensions || [
+			'.pdf',
+			'.doc',
+			'.docx',
+			'.jpg',
+			'.png',
+		],
 		multiple: field.multiple || false,
 		showPreview: field.showPreview || true,
 		showProgress: field.showProgress || true,
 		accept: field.accept || '*/*',
 	}
 
-	const handleConfigChange = useCallback((key: keyof FileUploadConfig, value: unknown) => {
-		const updatedField = {
-			...field,
-			[key]: value,
-		}
-		onFieldUpdate(updatedField)
-	}, [field, onFieldUpdate])
+	const handleConfigChange = useCallback(
+		(key: keyof FileUploadConfig, value: unknown) => {
+			const updatedField = {
+				...field,
+				[key]: value,
+			}
+			onFieldUpdate(updatedField)
+		},
+		[field, onFieldUpdate]
+	)
 
 	const handleFileUpload = useCallback((event: any) => {
 		const files = Array.from(event.files) as File[]
@@ -136,14 +145,14 @@ export default function FileUploadField({
 						maxFileSize={config.maxFileSize}
 						multiple={config.multiple}
 						onUpload={handleFileUpload}
-						onError={(e) => console.error('Upload error:', e)}
-						onSelect={(e) => console.log('Files selected:', e.files)}
+						onError={e => console.error('Upload error:', e)}
+						onSelect={e => console.log('Files selected:', e.files)}
 						chooseLabel='Choose Files'
 						uploadLabel='Upload'
 						cancelLabel='Cancel'
 						className='file-upload-field'
 					/>
-					
+
 					<div className='mt-2 text-sm text-gray-400'>
 						Max file size: {formatFileSize(config.maxFileSize)}
 					</div>
@@ -166,7 +175,9 @@ export default function FileUploadField({
 				{/* Uploaded Files Preview */}
 				{uploadedFiles.length > 0 && config.showPreview && (
 					<div className='space-y-2'>
-						<h4 className='text-sm font-medium text-gray-300'>Uploaded Files:</h4>
+						<h4 className='text-sm font-medium text-gray-300'>
+							Uploaded Files:
+						</h4>
 						<div className='space-y-2'>
 							{uploadedFiles.map((file, index) => (
 								<div
@@ -197,7 +208,7 @@ export default function FileUploadField({
 				{/* Configuration Options */}
 				<div className='space-y-3 pt-4 border-t border-gray-600'>
 					<h4 className='text-sm font-medium text-gray-300'>Configuration:</h4>
-					
+
 					<div className='grid grid-cols-2 gap-4'>
 						<div>
 							<label className='block text-xs text-gray-400 mb-1'>
@@ -205,21 +216,21 @@ export default function FileUploadField({
 							</label>
 							<InputNumber
 								value={config.maxFileSize}
-								onValueChange={(e) => handleConfigChange('maxFileSize', e.value)}
+								onValueChange={e => handleConfigChange('maxFileSize', e.value)}
 								min={1000}
 								max={100000000}
 								suffix=' bytes'
 								className='w-full'
 							/>
 						</div>
-						
+
 						<div>
 							<label className='block text-xs text-gray-400 mb-1'>
 								Accept Types
 							</label>
 							<InputText
 								value={config.accept}
-								onChange={(e) => handleConfigChange('accept', e.target.value)}
+								onChange={e => handleConfigChange('accept', e.target.value)}
 								placeholder='*/*'
 								className='w-full'
 							/>
@@ -231,7 +242,7 @@ export default function FileUploadField({
 							<Checkbox
 								inputId='multiple'
 								checked={config.multiple}
-								onChange={(e) => handleConfigChange('multiple', e.checked)}
+								onChange={e => handleConfigChange('multiple', e.checked)}
 							/>
 							<label htmlFor='multiple' className='text-sm text-gray-300'>
 								Allow Multiple Files
@@ -242,7 +253,7 @@ export default function FileUploadField({
 							<Checkbox
 								inputId='showPreview'
 								checked={config.showPreview}
-								onChange={(e) => handleConfigChange('showPreview', e.checked)}
+								onChange={e => handleConfigChange('showPreview', e.checked)}
 							/>
 							<label htmlFor='showPreview' className='text-sm text-gray-300'>
 								Show File Preview
@@ -253,7 +264,7 @@ export default function FileUploadField({
 							<Checkbox
 								inputId='showProgress'
 								checked={config.showProgress}
-								onChange={(e) => handleConfigChange('showProgress', e.checked)}
+								onChange={e => handleConfigChange('showProgress', e.checked)}
 							/>
 							<label htmlFor='showProgress' className='text-sm text-gray-300'>
 								Show Upload Progress

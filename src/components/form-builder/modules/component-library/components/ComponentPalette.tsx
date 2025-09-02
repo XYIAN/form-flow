@@ -164,30 +164,31 @@ export default function ComponentPalette({
 										className='cursor-pointer transition-all'
 										onClick={() => onComponentSelect(component)}
 									>
-									<div className='flex items-start gap-3'>
-										<i className={`${component.icon} text-2xl`} />
-										<div className='flex-grow'>
-											<div className='flex items-center justify-between mb-2'>
-												<h3 className='text-lg font-semibold'>
-													{component.name}
-												</h3>
-												<ComponentPreview
-													component={component}
-													onUse={onComponentSelect}
-												/>
-											</div>
-											<p className='text-sm text-gray-600 mb-2'>
-												{component.description}
-											</p>
-											<div className='flex flex-wrap gap-2'>
-												{component.metadata.tags.map(tag => (
-													<Badge key={tag} value={tag} />
-												))}
+										<div className='flex items-start gap-3'>
+											<i className={`${component.icon} text-2xl`} />
+											<div className='flex-grow'>
+												<div className='flex items-center justify-between mb-2'>
+													<h3 className='text-lg font-semibold'>
+														{component.name}
+													</h3>
+													<ComponentPreview
+														component={component}
+														onUse={onComponentSelect}
+													/>
+												</div>
+												<p className='text-sm text-gray-600 mb-2'>
+													{component.description}
+												</p>
+												<div className='flex flex-wrap gap-2'>
+													{component.metadata.tags.map(tag => (
+														<Badge key={tag} value={tag} />
+													))}
+												</div>
 											</div>
 										</div>
-									</div>
-								</Card>
-							</CustomizableBackground>
+									</Card>
+								</CustomizableBackground>
+							</Draggable>
 						</CSSTransition>
 					))
 				)}

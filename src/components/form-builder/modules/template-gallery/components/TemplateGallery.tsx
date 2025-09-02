@@ -216,65 +216,66 @@ export default function TemplateGallery({
 										}`}
 										onClick={() => onTemplateSelect(template)}
 									>
-									<div className='space-y-3'>
-										<div className='flex items-start justify-between'>
-											<div>
-												<h3 className='text-lg font-semibold'>
-													{template.name}
-												</h3>
-												<p className='text-sm text-gray-600'>
-													{template.description}
-												</p>
-											</div>
-											<div className='flex items-center gap-2'>
-												<Badge
-													value={template.difficulty}
-													severity={getDifficultyColor(template.difficulty)}
-												/>
-												<TemplatePreview
-													template={template}
-													onUse={onTemplateUse}
-												/>
-											</div>
-										</div>
-
-										<div className='grid grid-cols-12 gap-2 p-2 bg-gray-50 rounded'>
-											{template.layout.sections.map((section, index) => (
-												<div
-													key={section.id}
-													className={`col-span-${
-														12 / section.columns.length
-													} p-2 bg-white rounded shadow-sm`}
-												>
-													<div className='text-xs text-center text-gray-500'>
-														Section {index + 1}
-													</div>
+										<div className='space-y-3'>
+											<div className='flex items-start justify-between'>
+												<div>
+													<h3 className='text-lg font-semibold'>
+														{template.name}
+													</h3>
+													<p className='text-sm text-gray-600'>
+														{template.description}
+													</p>
 												</div>
-											))}
-										</div>
+												<div className='flex items-center gap-2'>
+													<Badge
+														value={template.difficulty}
+														severity={getDifficultyColor(template.difficulty)}
+													/>
+													<TemplatePreview
+														template={template}
+														onUse={onTemplateUse}
+													/>
+												</div>
+											</div>
 
-										<div className='flex flex-wrap gap-2'>
-											<Badge value={`${template.fields.length} fields`} />
-											<Badge
-												value={`${template.layout.sections.length} sections`}
+											<div className='grid grid-cols-12 gap-2 p-2 bg-gray-50 rounded'>
+												{template.layout.sections.map((section, index) => (
+													<div
+														key={section.id}
+														className={`col-span-${
+															12 / section.columns.length
+														} p-2 bg-white rounded shadow-sm`}
+													>
+														<div className='text-xs text-center text-gray-500'>
+															Section {index + 1}
+														</div>
+													</div>
+												))}
+											</div>
+
+											<div className='flex flex-wrap gap-2'>
+												<Badge value={`${template.fields.length} fields`} />
+												<Badge
+													value={`${template.layout.sections.length} sections`}
+												/>
+												{template.metadata?.source && (
+													<Badge value={template.metadata.source} />
+												)}
+											</div>
+
+											<Button
+												label='Use Template'
+												icon='pi pi-check'
+												className='w-full p-button-outlined'
+												onClick={e => {
+													e.stopPropagation()
+													onTemplateUse(template)
+												}}
 											/>
-											{template.metadata?.source && (
-												<Badge value={template.metadata.source} />
-											)}
 										</div>
-
-										<Button
-											label='Use Template'
-											icon='pi pi-check'
-											className='w-full p-button-outlined'
-											onClick={e => {
-												e.stopPropagation()
-												onTemplateUse(template)
-											}}
-										/>
-									</div>
-								</Card>
-							</CustomizableBackground>
+									</Card>
+								</CustomizableBackground>
+							</Draggable>
 						</CSSTransition>
 					))
 				)}

@@ -37,7 +37,14 @@ export default function RichTextField({
 	const [isEditing, setIsEditing] = useState(false)
 
 	const config: RichTextConfig = {
-		toolbar: field.toolbar || ['bold', 'italic', 'underline', 'link', 'list', 'quote'],
+		toolbar: field.toolbar || [
+			'bold',
+			'italic',
+			'underline',
+			'link',
+			'list',
+			'quote',
+		],
 		height: field.height || 200,
 		placeholder: field.placeholder || 'Enter your text here...',
 		allowHtml: field.allowHtml || true,
@@ -46,22 +53,28 @@ export default function RichTextField({
 		characterCount: field.characterCount || false,
 	}
 
-	const handleConfigChange = useCallback((key: keyof RichTextConfig, value: unknown) => {
-		const updatedField = {
-			...field,
-			[key]: value,
-		}
-		onFieldUpdate(updatedField)
-	}, [field, onFieldUpdate])
+	const handleConfigChange = useCallback(
+		(key: keyof RichTextConfig, value: unknown) => {
+			const updatedField = {
+				...field,
+				[key]: value,
+			}
+			onFieldUpdate(updatedField)
+		},
+		[field, onFieldUpdate]
+	)
 
-	const handleContentChange = useCallback((newContent: string) => {
-		setContent(newContent)
-		const updatedField = {
-			...field,
-			defaultValue: newContent,
-		}
-		onFieldUpdate(updatedField)
-	}, [field, onFieldUpdate])
+	const handleContentChange = useCallback(
+		(newContent: string) => {
+			setContent(newContent)
+			const updatedField = {
+				...field,
+				defaultValue: newContent,
+			}
+			onFieldUpdate(updatedField)
+		},
+		[field, onFieldUpdate]
+	)
 
 	const toolbarOptions = [
 		{ label: 'Bold', value: 'bold' },
@@ -80,7 +93,10 @@ export default function RichTextField({
 	]
 
 	const getWordCount = (text: string) => {
-		return text.trim().split(/\s+/).filter(word => word.length > 0).length
+		return text
+			.trim()
+			.split(/\s+/)
+			.filter(word => word.length > 0).length
 	}
 
 	const getCharacterCount = (text: string) => {
@@ -90,14 +106,28 @@ export default function RichTextField({
 	const renderToolbar = () => {
 		return (
 			<div className='flex items-center gap-1 p-2 border-b border-gray-600 bg-gray-800'>
-				{config.toolbar.map((tool) => {
+				{config.toolbar.map(tool => {
 					const option = toolbarOptions.find(opt => opt.value === tool)
 					if (!option) return null
 
 					return (
 						<Button
 							key={tool}
-							icon={`pi pi-${tool === 'bold' ? 'bold' : tool === 'italic' ? 'italic' : tool === 'underline' ? 'underline' : tool === 'link' ? 'link' : tool === 'list' ? 'list' : tool === 'quote' ? 'quote' : 'cog'}`}
+							icon={`pi pi-${
+								tool === 'bold'
+									? 'bold'
+									: tool === 'italic'
+									? 'italic'
+									: tool === 'underline'
+									? 'underline'
+									: tool === 'link'
+									? 'link'
+									: tool === 'list'
+									? 'list'
+									: tool === 'quote'
+									? 'quote'
+									: 'cog'
+							}`}
 							className='p-button-text p-button-sm text-gray-400 hover:text-white'
 							tooltip={option.label}
 							onClick={() => {
@@ -118,7 +148,7 @@ export default function RichTextField({
 					{renderToolbar()}
 					<textarea
 						value={content}
-						onChange={(e) => handleContentChange(e.target.value)}
+						onChange={e => handleContentChange(e.target.value)}
 						placeholder={config.placeholder}
 						className='w-full p-3 bg-gray-800 text-white border-0 resize-none focus:outline-none'
 						style={{ height: `${config.height}px` }}
@@ -151,7 +181,7 @@ export default function RichTextField({
 					onClick={() => setIsEditing(true)}
 				>
 					{content ? (
-						<div 
+						<div
 							className='text-white'
 							dangerouslySetInnerHTML={{ __html: content }}
 						/>
@@ -188,7 +218,7 @@ export default function RichTextField({
 				{/* Configuration Options */}
 				<div className='space-y-3 pt-4 border-t border-gray-600'>
 					<h4 className='text-sm font-medium text-gray-300'>Configuration:</h4>
-					
+
 					<div className='grid grid-cols-2 gap-4'>
 						<div>
 							<label className='block text-xs text-gray-400 mb-1'>
@@ -197,18 +227,22 @@ export default function RichTextField({
 							<InputText
 								type='number'
 								value={config.height}
-								onChange={(e) => handleConfigChange('height', parseInt(e.target.value) || 200)}
+								onChange={e =>
+									handleConfigChange('height', parseInt(e.target.value) || 200)
+								}
 								className='w-full'
 							/>
 						</div>
-						
+
 						<div>
 							<label className='block text-xs text-gray-400 mb-1'>
 								Placeholder Text
 							</label>
 							<InputText
 								value={config.placeholder}
-								onChange={(e) => handleConfigChange('placeholder', e.target.value)}
+								onChange={e =>
+									handleConfigChange('placeholder', e.target.value)
+								}
 								className='w-full'
 							/>
 						</div>
@@ -219,19 +253,22 @@ export default function RichTextField({
 							Toolbar Options
 						</label>
 						<div className='grid grid-cols-3 gap-2'>
-							{toolbarOptions.map((option) => (
+							{toolbarOptions.map(option => (
 								<div key={option.value} className='flex items-center gap-2'>
 									<Checkbox
 										inputId={option.value}
 										checked={config.toolbar.includes(option.value)}
-										onChange={(e) => {
+										onChange={e => {
 											const newToolbar = e.checked
 												? [...config.toolbar, option.value]
 												: config.toolbar.filter(tool => tool !== option.value)
 											handleConfigChange('toolbar', newToolbar)
 										}}
 									/>
-									<label htmlFor={option.value} className='text-xs text-gray-300'>
+									<label
+										htmlFor={option.value}
+										className='text-xs text-gray-300'
+									>
 										{option.label}
 									</label>
 								</div>
@@ -244,7 +281,7 @@ export default function RichTextField({
 							<Checkbox
 								inputId='allowHtml'
 								checked={config.allowHtml}
-								onChange={(e) => handleConfigChange('allowHtml', e.checked)}
+								onChange={e => handleConfigChange('allowHtml', e.checked)}
 							/>
 							<label htmlFor='allowHtml' className='text-sm text-gray-300'>
 								Allow HTML
@@ -255,7 +292,7 @@ export default function RichTextField({
 							<Checkbox
 								inputId='allowMarkdown'
 								checked={config.allowMarkdown}
-								onChange={(e) => handleConfigChange('allowMarkdown', e.checked)}
+								onChange={e => handleConfigChange('allowMarkdown', e.checked)}
 							/>
 							<label htmlFor='allowMarkdown' className='text-sm text-gray-300'>
 								Allow Markdown
@@ -266,7 +303,7 @@ export default function RichTextField({
 							<Checkbox
 								inputId='wordCount'
 								checked={config.wordCount}
-								onChange={(e) => handleConfigChange('wordCount', e.checked)}
+								onChange={e => handleConfigChange('wordCount', e.checked)}
 							/>
 							<label htmlFor='wordCount' className='text-sm text-gray-300'>
 								Show Word Count
@@ -277,7 +314,7 @@ export default function RichTextField({
 							<Checkbox
 								inputId='characterCount'
 								checked={config.characterCount}
-								onChange={(e) => handleConfigChange('characterCount', e.checked)}
+								onChange={e => handleConfigChange('characterCount', e.checked)}
 							/>
 							<label htmlFor='characterCount' className='text-sm text-gray-300'>
 								Show Character Count

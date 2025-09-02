@@ -9,6 +9,8 @@ import FieldPalette from './modules/component-library/components/FieldPalette'
 import FormCanvas from './modules/form/components/FormCanvas'
 import PropertiesPanel from './modules/form/components/PropertiesPanel'
 import LayoutSystem from './modules/layout-system/components/LayoutSystem'
+import AdvancedFieldsPanel from './modules/advanced-fields/components/AdvancedFieldsPanel'
+import PowerFeaturesPanel from './modules/power-features/components/PowerFeaturesPanel'
 import { useFormHistory } from './shared/hooks/useFormHistory'
 import { useKeyboardShortcuts } from './shared/hooks/useKeyboardShortcuts'
 
@@ -29,6 +31,8 @@ export default function FormBuilder({
 	const [selectedField, setSelectedField] = useState<FormField | null>(null)
 	const [activeTab, setActiveTab] = useState(0)
 	const [useAdvancedLayout, setUseAdvancedLayout] = useState(false)
+	const [showAdvancedFields, setShowAdvancedFields] = useState(false)
+	const [showPowerFeatures, setShowPowerFeatures] = useState(false)
 
 	// Form history management
 	const { canUndo, canRedo, undo, redo, saveState } = useFormHistory(
@@ -180,12 +184,39 @@ export default function FormBuilder({
 
 					{/* Right Sidebar - Properties Panel */}
 					<div className='col-12 lg:col-3'>
-						<PropertiesPanel
-							selectedField={selectedField}
-							onFieldUpdate={handleFieldUpdate}
-							onFieldRemove={handleFieldRemove}
-							className='h-full'
-						/>
+						{showPowerFeatures ? (
+							<PowerFeaturesPanel
+								fields={fields}
+								onAPIConnectionsChange={connections =>
+									console.log('API connections:', connections)
+								}
+								onWebhooksChange={webhooks =>
+									console.log('Webhooks:', webhooks)
+								}
+								onAnalyticsConfigChange={config =>
+									console.log('Analytics config:', config)
+								}
+								onExport={config => console.log('Export:', config)}
+								className='h-full'
+							/>
+						) : showAdvancedFields ? (
+							<AdvancedFieldsPanel
+								fields={fields}
+								selectedField={selectedField}
+								onFieldUpdate={handleFieldUpdate}
+								onFieldRemove={handleFieldRemove}
+								onFieldSelect={handleFieldSelect}
+								onFieldsChange={handleFieldsChange}
+								className='h-full'
+							/>
+						) : (
+							<PropertiesPanel
+								selectedField={selectedField}
+								onFieldUpdate={handleFieldUpdate}
+								onFieldRemove={handleFieldRemove}
+								className='h-full'
+							/>
+						)}
 					</div>
 				</div>
 
@@ -231,6 +262,76 @@ export default function FormBuilder({
 											{useAdvancedLayout
 												? 'Advanced layout system with rows, columns, tabs, and accordions'
 												: 'Simple canvas with drag-and-drop field placement'}
+										</div>
+									</div>
+
+									{/* Advanced Fields Toggle */}
+									<div className='mb-6 p-4 border border-gray-600 rounded-lg bg-gray-800/50'>
+										<div className='flex items-center justify-between mb-3'>
+											<div>
+												<h4 className='text-md font-medium text-white mb-1'>
+													Advanced Fields
+												</h4>
+												<p className='text-sm text-gray-400'>
+													Access advanced field types and configurations
+												</p>
+											</div>
+											<button
+												onClick={() =>
+													setShowAdvancedFields(!showAdvancedFields)
+												}
+												className={`
+													px-4 py-2 rounded transition-colors
+													${
+														showAdvancedFields
+															? 'bg-blue-600 hover:bg-blue-700 text-white'
+															: 'bg-gray-600 hover:bg-gray-500 text-gray-300'
+													}
+												`}
+											>
+												{showAdvancedFields
+													? 'Advanced Fields'
+													: 'Basic Properties'}
+											</button>
+										</div>
+										<div className='text-xs text-gray-500'>
+											{showAdvancedFields
+												? 'Advanced field types, dependencies, multi-step forms, and validation'
+												: 'Basic field properties and configuration'}
+										</div>
+									</div>
+
+									{/* Power Features Toggle */}
+									<div className='mb-6 p-4 border border-gray-600 rounded-lg bg-gray-800/50'>
+										<div className='flex items-center justify-between mb-3'>
+											<div>
+												<h4 className='text-md font-medium text-white mb-1'>
+													Power Features
+												</h4>
+												<p className='text-sm text-gray-400'>
+													Access API integration, analytics, and export options
+												</p>
+											</div>
+											<button
+												onClick={() => setShowPowerFeatures(!showPowerFeatures)}
+												className={`
+													px-4 py-2 rounded transition-colors
+													${
+														showPowerFeatures
+															? 'bg-green-600 hover:bg-green-700 text-white'
+															: 'bg-gray-600 hover:bg-gray-500 text-gray-300'
+													}
+												`}
+											>
+												{showPowerFeatures
+													? 'Power Features'
+													: 'Basic Properties'}
+											</button>
+										</div>
+										<div className='text-xs text-gray-500'>
+											{showPowerFeatures
+												? 'API integration, webhooks, analytics, export options, and collaboration'
+												: 'Basic field properties and configuration'}
 										</div>
 									</div>
 

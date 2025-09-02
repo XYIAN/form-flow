@@ -58,22 +58,28 @@ export default function DateTimeField({
 		locale: field.locale || 'en',
 	}
 
-	const handleConfigChange = useCallback((key: keyof DateTimeConfig, value: unknown) => {
-		const updatedField = {
-			...field,
-			[key]: value,
-		}
-		onFieldUpdate(updatedField)
-	}, [field, onFieldUpdate])
+	const handleConfigChange = useCallback(
+		(key: keyof DateTimeConfig, value: unknown) => {
+			const updatedField = {
+				...field,
+				[key]: value,
+			}
+			onFieldUpdate(updatedField)
+		},
+		[field, onFieldUpdate]
+	)
 
-	const handleValueChange = useCallback((newValue: Date | Date[] | null) => {
-		setValue(newValue)
-		const updatedField = {
-			...field,
-			defaultValue: newValue,
-		}
-		onFieldUpdate(updatedField)
-	}, [field, onFieldUpdate])
+	const handleValueChange = useCallback(
+		(newValue: Date | Date[] | null) => {
+			setValue(newValue)
+			const updatedField = {
+				...field,
+				defaultValue: newValue,
+			}
+			onFieldUpdate(updatedField)
+		},
+		[field, onFieldUpdate]
+	)
 
 	const dateTypeOptions = [
 		{ label: 'Date', value: 'date' },
@@ -166,7 +172,7 @@ export default function DateTimeField({
 				{/* Configuration Options */}
 				<div className='space-y-3 pt-4 border-t border-gray-600'>
 					<h4 className='text-sm font-medium text-gray-300'>Configuration:</h4>
-					
+
 					<div className='grid grid-cols-2 gap-4'>
 						<div>
 							<label className='block text-xs text-gray-400 mb-1'>
@@ -175,11 +181,11 @@ export default function DateTimeField({
 							<Dropdown
 								value={config.type}
 								options={dateTypeOptions}
-								onChange={(e) => handleConfigChange('type', e.value)}
+								onChange={e => handleConfigChange('type', e.value)}
 								className='w-full'
 							/>
 						</div>
-						
+
 						<div>
 							<label className='block text-xs text-gray-400 mb-1'>
 								Date Format
@@ -187,7 +193,7 @@ export default function DateTimeField({
 							<Dropdown
 								value={config.dateFormat}
 								options={dateFormatOptions}
-								onChange={(e) => handleConfigChange('dateFormat', e.value)}
+								onChange={e => handleConfigChange('dateFormat', e.value)}
 								className='w-full'
 							/>
 						</div>
@@ -201,11 +207,16 @@ export default function DateTimeField({
 							<InputText
 								type='date'
 								value={config.minDate?.toISOString().split('T')[0] || ''}
-								onChange={(e) => handleConfigChange('minDate', e.target.value ? new Date(e.target.value) : undefined)}
+								onChange={e =>
+									handleConfigChange(
+										'minDate',
+										e.target.value ? new Date(e.target.value) : undefined
+									)
+								}
 								className='w-full'
 							/>
 						</div>
-						
+
 						<div>
 							<label className='block text-xs text-gray-400 mb-1'>
 								Max Date
@@ -213,7 +224,12 @@ export default function DateTimeField({
 							<InputText
 								type='date'
 								value={config.maxDate?.toISOString().split('T')[0] || ''}
-								onChange={(e) => handleConfigChange('maxDate', e.target.value ? new Date(e.target.value) : undefined)}
+								onChange={e =>
+									handleConfigChange(
+										'maxDate',
+										e.target.value ? new Date(e.target.value) : undefined
+									)
+								}
 								className='w-full'
 							/>
 						</div>
@@ -227,11 +243,11 @@ export default function DateTimeField({
 							<Dropdown
 								value={config.timeFormat}
 								options={timeFormatOptions}
-								onChange={(e) => handleConfigChange('timeFormat', e.value)}
+								onChange={e => handleConfigChange('timeFormat', e.value)}
 								className='w-full'
 							/>
 						</div>
-						
+
 						<div>
 							<label className='block text-xs text-gray-400 mb-1'>
 								Week Starts On
@@ -239,7 +255,7 @@ export default function DateTimeField({
 							<Dropdown
 								value={config.weekStartsOn}
 								options={weekStartOptions}
-								onChange={(e) => handleConfigChange('weekStartsOn', e.value)}
+								onChange={e => handleConfigChange('weekStartsOn', e.value)}
 								className='w-full'
 							/>
 						</div>
@@ -250,19 +266,22 @@ export default function DateTimeField({
 							Disabled Days
 						</label>
 						<div className='grid grid-cols-4 gap-2'>
-							{dayOptions.map((day) => (
+							{dayOptions.map(day => (
 								<div key={day.value} className='flex items-center gap-2'>
 									<Checkbox
 										inputId={`day-${day.value}`}
 										checked={config.disabledDays.includes(day.value)}
-										onChange={(e) => {
+										onChange={e => {
 											const newDisabledDays = e.checked
 												? [...config.disabledDays, day.value]
 												: config.disabledDays.filter(d => d !== day.value)
 											handleConfigChange('disabledDays', newDisabledDays)
 										}}
 									/>
-									<label htmlFor={`day-${day.value}`} className='text-xs text-gray-300'>
+									<label
+										htmlFor={`day-${day.value}`}
+										className='text-xs text-gray-300'
+									>
 										{day.label}
 									</label>
 								</div>
@@ -275,7 +294,7 @@ export default function DateTimeField({
 							<Checkbox
 								inputId='showTime'
 								checked={config.showTime}
-								onChange={(e) => handleConfigChange('showTime', e.checked)}
+								onChange={e => handleConfigChange('showTime', e.checked)}
 							/>
 							<label htmlFor='showTime' className='text-sm text-gray-300'>
 								Show Time
@@ -286,7 +305,7 @@ export default function DateTimeField({
 							<Checkbox
 								inputId='showSeconds'
 								checked={config.showSeconds}
-								onChange={(e) => handleConfigChange('showSeconds', e.checked)}
+								onChange={e => handleConfigChange('showSeconds', e.checked)}
 							/>
 							<label htmlFor='showSeconds' className='text-sm text-gray-300'>
 								Show Seconds
@@ -297,7 +316,7 @@ export default function DateTimeField({
 							<Checkbox
 								inputId='timeOnly'
 								checked={config.timeOnly}
-								onChange={(e) => handleConfigChange('timeOnly', e.checked)}
+								onChange={e => handleConfigChange('timeOnly', e.checked)}
 							/>
 							<label htmlFor='timeOnly' className='text-sm text-gray-300'>
 								Time Only

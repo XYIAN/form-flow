@@ -52,23 +52,29 @@ export default function InputMaskField({
 		validation: field.validation || false,
 	}
 
-	const handleConfigChange = useCallback((key: keyof InputMaskConfig, value: unknown) => {
-		const updatedField = {
-			...field,
-			[key]: value,
-		}
-		onFieldUpdate(updatedField)
-	}, [field, onFieldUpdate])
+	const handleConfigChange = useCallback(
+		(key: keyof InputMaskConfig, value: unknown) => {
+			const updatedField = {
+				...field,
+				[key]: value,
+			}
+			onFieldUpdate(updatedField)
+		},
+		[field, onFieldUpdate]
+	)
 
-	const handleValueChange = useCallback((e: any) => {
-		const newValue = e.target.value
-		setValue(newValue)
-		const updatedField = {
-			...field,
-			defaultValue: newValue,
-		}
-		onFieldUpdate(updatedField)
-	}, [field, onFieldUpdate])
+	const handleValueChange = useCallback(
+		(e: any) => {
+			const newValue = e.target.value
+			setValue(newValue)
+			const updatedField = {
+				...field,
+				defaultValue: newValue,
+			}
+			onFieldUpdate(updatedField)
+		},
+		[field, onFieldUpdate]
+	)
 
 	const predefinedMasks = [
 		{ label: 'Phone Number', value: '(999) 999-9999' },
@@ -135,7 +141,11 @@ export default function InputMaskField({
 				<div className='space-y-2'>
 					<InputMask {...getMaskProps()} />
 					{config.validation && (
-						<div className={`text-xs ${isValid ? 'text-green-400' : 'text-red-400'}`}>
+						<div
+							className={`text-xs ${
+								isValid ? 'text-green-400' : 'text-red-400'
+							}`}
+						>
 							{isValid ? '✓ Valid format' : '✗ Invalid format'}
 						</div>
 					)}
@@ -144,7 +154,7 @@ export default function InputMaskField({
 				{/* Configuration Options */}
 				<div className='space-y-3 pt-4 border-t border-gray-600'>
 					<h4 className='text-sm font-medium text-gray-300'>Configuration:</h4>
-					
+
 					<div className='grid grid-cols-2 gap-4'>
 						<div>
 							<label className='block text-xs text-gray-400 mb-1'>
@@ -153,7 +163,7 @@ export default function InputMaskField({
 							<Dropdown
 								value={config.mask}
 								options={predefinedMasks}
-								onChange={(e) => {
+								onChange={e => {
 									if (e.value !== 'custom') {
 										handleConfigChange('mask', e.value)
 									}
@@ -161,14 +171,14 @@ export default function InputMaskField({
 								className='w-full'
 							/>
 						</div>
-						
+
 						<div>
 							<label className='block text-xs text-gray-400 mb-1'>
 								Custom Mask
 							</label>
 							<InputText
 								value={config.mask}
-								onChange={(e) => handleConfigChange('mask', e.target.value)}
+								onChange={e => handleConfigChange('mask', e.target.value)}
 								placeholder='Enter custom mask...'
 								className='w-full'
 							/>
@@ -182,18 +192,20 @@ export default function InputMaskField({
 							</label>
 							<InputText
 								value={config.placeholder}
-								onChange={(e) => handleConfigChange('placeholder', e.target.value)}
+								onChange={e =>
+									handleConfigChange('placeholder', e.target.value)
+								}
 								className='w-full'
 							/>
 						</div>
-						
+
 						<div>
 							<label className='block text-xs text-gray-400 mb-1'>
 								Slot Character
 							</label>
 							<InputText
 								value={config.slotChar}
-								onChange={(e) => handleConfigChange('slotChar', e.target.value)}
+								onChange={e => handleConfigChange('slotChar', e.target.value)}
 								maxLength={1}
 								className='w-full'
 							/>
@@ -206,7 +218,7 @@ export default function InputMaskField({
 						</label>
 						<InputText
 							value={config.pattern}
-							onChange={(e) => handleConfigChange('pattern', e.target.value)}
+							onChange={e => handleConfigChange('pattern', e.target.value)}
 							placeholder='^[0-9]+$'
 							className='w-full'
 						/>
@@ -220,7 +232,7 @@ export default function InputMaskField({
 							<Checkbox
 								inputId='unmask'
 								checked={config.unmask}
-								onChange={(e) => handleConfigChange('unmask', e.checked)}
+								onChange={e => handleConfigChange('unmask', e.checked)}
 							/>
 							<label htmlFor='unmask' className='text-sm text-gray-300'>
 								Unmask Value
@@ -231,7 +243,7 @@ export default function InputMaskField({
 							<Checkbox
 								inputId='showMask'
 								checked={config.showMask}
-								onChange={(e) => handleConfigChange('showMask', e.checked)}
+								onChange={e => handleConfigChange('showMask', e.checked)}
 							/>
 							<label htmlFor='showMask' className='text-sm text-gray-300'>
 								Show Mask
@@ -242,7 +254,7 @@ export default function InputMaskField({
 							<Checkbox
 								inputId='autoClear'
 								checked={config.autoClear}
-								onChange={(e) => handleConfigChange('autoClear', e.checked)}
+								onChange={e => handleConfigChange('autoClear', e.checked)}
 							/>
 							<label htmlFor='autoClear' className='text-sm text-gray-300'>
 								Auto Clear
@@ -255,7 +267,7 @@ export default function InputMaskField({
 							<Checkbox
 								inputId='clearOnBlur'
 								checked={config.clearOnBlur}
-								onChange={(e) => handleConfigChange('clearOnBlur', e.checked)}
+								onChange={e => handleConfigChange('clearOnBlur', e.checked)}
 							/>
 							<label htmlFor='clearOnBlur' className='text-sm text-gray-300'>
 								Clear on Blur
@@ -266,9 +278,12 @@ export default function InputMaskField({
 							<Checkbox
 								inputId='clearIncomplete'
 								checked={config.clearIncomplete}
-								onChange={(e) => handleConfigChange('clearIncomplete', e.checked)}
+								onChange={e => handleConfigChange('clearIncomplete', e.checked)}
 							/>
-							<label htmlFor='clearIncomplete' className='text-sm text-gray-300'>
+							<label
+								htmlFor='clearIncomplete'
+								className='text-sm text-gray-300'
+							>
 								Clear Incomplete
 							</label>
 						</div>
@@ -277,7 +292,7 @@ export default function InputMaskField({
 							<Checkbox
 								inputId='validation'
 								checked={config.validation}
-								onChange={(e) => handleConfigChange('validation', e.checked)}
+								onChange={e => handleConfigChange('validation', e.checked)}
 							/>
 							<label htmlFor='validation' className='text-sm text-gray-300'>
 								Enable Validation
@@ -288,14 +303,28 @@ export default function InputMaskField({
 
 				{/* Mask Help */}
 				<div className='pt-4 border-t border-gray-600'>
-					<h4 className='text-sm font-medium text-gray-300 mb-2'>Mask Characters:</h4>
+					<h4 className='text-sm font-medium text-gray-300 mb-2'>
+						Mask Characters:
+					</h4>
 					<div className='grid grid-cols-2 gap-2 text-xs text-gray-400'>
-						<div><code className='text-purple-400'>9</code> - Digit (0-9)</div>
-						<div><code className='text-purple-400'>A</code> - Letter (A-Z, a-z)</div>
-						<div><code className='text-purple-400'>*</code> - Alphanumeric</div>
-						<div><code className='text-purple-400'>?</code> - Optional character</div>
-						<div><code className='text-purple-400'>#</code> - Optional digit</div>
-						<div><code className='text-purple-400'>~</code> - Optional letter</div>
+						<div>
+							<code className='text-purple-400'>9</code> - Digit (0-9)
+						</div>
+						<div>
+							<code className='text-purple-400'>A</code> - Letter (A-Z, a-z)
+						</div>
+						<div>
+							<code className='text-purple-400'>*</code> - Alphanumeric
+						</div>
+						<div>
+							<code className='text-purple-400'>?</code> - Optional character
+						</div>
+						<div>
+							<code className='text-purple-400'>#</code> - Optional digit
+						</div>
+						<div>
+							<code className='text-purple-400'>~</code> - Optional letter
+						</div>
 					</div>
 				</div>
 			</div>
