@@ -32,9 +32,9 @@ export class FieldMCP {
 		const tracker = MCPLogger.createPerformanceTracker('render')
 
 		try {
-					// Validate field
-		const fieldValidation = FieldMCP.validateField(props.field)
-		if (!fieldValidation.success) {
+			// Validate field
+			const fieldValidation = FieldMCP.validateField(props.field)
+			if (!fieldValidation.success) {
 				const result: MCPResult<React.ReactNode> = {
 					success: false,
 					errors: fieldValidation.errors,
@@ -182,7 +182,10 @@ export class FieldMCP {
 	/**
 	 * Validates field value against field configuration
 	 */
-	static validateFieldValue(field: FormField, value: unknown): MCPResult<boolean> {
+	static validateFieldValue(
+		field: FormField,
+		value: unknown
+	): MCPResult<boolean> {
 		const errors: MCPError[] = []
 
 		// Required field validation
@@ -201,7 +204,11 @@ export class FieldMCP {
 		// Type-specific validation
 		switch (field.type) {
 			case 'email':
-				if (value && typeof value === 'string' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+				if (
+					value &&
+					typeof value === 'string' &&
+					!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+				) {
 					errors.push({
 						code: 'VALIDATION_ERROR',
 						message: 'Please enter a valid email address',
@@ -223,7 +230,11 @@ export class FieldMCP {
 				break
 
 			case 'phone':
-				if (value && typeof value === 'string' && !/^[\+]?[1-9][\d]{0,15}$/.test(value.replace(/\D/g, ''))) {
+				if (
+					value &&
+					typeof value === 'string' &&
+					!/^[\+]?[1-9][\d]{0,15}$/.test(value.replace(/\D/g, ''))
+				) {
 					errors.push({
 						code: 'VALIDATION_ERROR',
 						message: 'Please enter a valid phone number',
@@ -274,7 +285,10 @@ export class FieldMCP {
 		errors: unknown
 	): Record<string, unknown> {
 		const errorsObj = errors as Record<string, unknown>
-		const controlObj = control as Record<string, { value: unknown; onChange: (value: unknown) => void; onBlur: () => void }>
+		const controlObj = control as Record<
+			string,
+			{ value: unknown; onChange: (value: unknown) => void; onBlur: () => void }
+		>
 		const baseProps = {
 			placeholder: field.placeholder,
 			className: `w-full ${errorsObj?.[field.id] ? 'p-invalid' : ''}`,
@@ -289,7 +303,8 @@ export class FieldMCP {
 					...baseProps,
 					type: field.type,
 					value: controlObj?.[field.id]?.value || '',
-					onChange: (e: any) => controlObj?.[field.id]?.onChange(e.target.value),
+					onChange: (e: any) =>
+						controlObj?.[field.id]?.onChange(e.target.value),
 					onBlur: controlObj?.[field.id]?.onBlur,
 				}
 

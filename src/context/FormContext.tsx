@@ -1,6 +1,12 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import {
+	createContext,
+	useContext,
+	useState,
+	useEffect,
+	ReactNode,
+} from 'react'
 import { Form, CreateFormData } from '@/types'
 import { FormMCP, MCPLogger } from '@/lib/mcp'
 
@@ -31,11 +37,13 @@ export function FormProvider({ children }: FormProviderProps) {
 		const savedForms = localStorage.getItem('formFlowForms')
 		if (savedForms) {
 			try {
-				const parsedForms = JSON.parse(savedForms).map((form: Form & { createdAt: string; updatedAt: string }) => ({
-					...form,
-					createdAt: new Date(form.createdAt),
-					updatedAt: new Date(form.updatedAt)
-				}))
+				const parsedForms = JSON.parse(savedForms).map(
+					(form: Form & { createdAt: string; updatedAt: string }) => ({
+						...form,
+						createdAt: new Date(form.createdAt),
+						updatedAt: new Date(form.updatedAt),
+					})
+				)
 				setForms(parsedForms)
 			} catch (error) {
 				console.error('Error loading forms from localStorage:', error)
@@ -54,15 +62,23 @@ export function FormProvider({ children }: FormProviderProps) {
 		}
 	}, [forms])
 
-	const createForm = (formData: CreateFormData, userId: string): Form | null => {
+	const createForm = (
+		formData: CreateFormData,
+		userId: string
+	): Form | null => {
 		// Use MCP to create form with validation
 		const result = FormMCP.createForm(formData)
-		
+
 		if (!result.success) {
 			// Handle errors
-			const errorMessages = result.errors?.map(e => e.message) || ['Failed to create form']
+			const errorMessages = result.errors?.map(e => e.message) || [
+				'Failed to create form',
+			]
 			setErrors(errorMessages)
-			MCPLogger.error('createForm', result.errors?.[0] || new Error('Unknown error'))
+			MCPLogger.error(
+				'createForm',
+				result.errors?.[0] || new Error('Unknown error')
+			)
 			return null
 		}
 
@@ -71,11 +87,11 @@ export function FormProvider({ children }: FormProviderProps) {
 			...result.data!,
 			userId,
 			createdAt: new Date(),
-			updatedAt: new Date()
+			updatedAt: new Date(),
 		}
 
 		setForms(prev => [...prev, newForm])
-		
+
 		// Clear errors on success
 		setErrors([])
 		if (result.warnings) {
@@ -85,7 +101,10 @@ export function FormProvider({ children }: FormProviderProps) {
 		return newForm
 	}
 
-	const updateForm = (formId: string, formData: Partial<CreateFormData>): Form | null => {
+	const updateForm = (
+		formId: string,
+		formData: Partial<CreateFormData>
+	): Form | null => {
 		const existingForm = forms.find(form => form.id === formId)
 		if (!existingForm) {
 			setErrors(['Form not found'])
@@ -94,19 +113,24 @@ export function FormProvider({ children }: FormProviderProps) {
 
 		// Use MCP to update form with validation
 		const result = FormMCP.updateForm(existingForm, formData)
-		
+
 		if (!result.success) {
 			// Handle errors
-			const errorMessages = result.errors?.map(e => e.message) || ['Failed to update form']
+			const errorMessages = result.errors?.map(e => e.message) || [
+				'Failed to update form',
+			]
 			setErrors(errorMessages)
-			MCPLogger.error('updateForm', result.errors?.[0] || new Error('Unknown error'))
+			MCPLogger.error(
+				'updateForm',
+				result.errors?.[0] || new Error('Unknown error')
+			)
 			return null
 		}
 
 		// Update forms state
-		setForms(prev => prev.map(form => 
-			form.id === formId ? result.data! : form
-		))
+		setForms(prev =>
+			prev.map(form => (form.id === formId ? result.data! : form))
+		)
 
 		// Clear errors on success
 		setErrors([])
@@ -145,14 +169,10 @@ export function FormProvider({ children }: FormProviderProps) {
 		getFormById,
 		getFormsByUserId,
 		errors,
-		warnings
+		warnings,
 	}
 
-	return (
-		<FormContext.Provider value={value}>
-			{children}
-		</FormContext.Provider>
-	)
+	return <FormContext.Provider value={value}>{children}</FormContext.Provider>
 }
 
 export function useForms(): FormContextType {
@@ -161,4 +181,4 @@ export function useForms(): FormContextType {
 		throw new Error('useForms must be used within a FormProvider')
 	}
 	return context
-} 
+}

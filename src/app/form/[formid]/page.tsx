@@ -140,7 +140,9 @@ export default function FormViewPage({ params }: FormViewPageProps) {
 							result.errors?.[0] || new Error('Field rendering failed')
 						)
 						return (
-							<div className='p-error'>Failed to render field: {field.label}</div>
+							<div className='p-error'>
+								Failed to render field: {field.label}
+							</div>
 						)
 					}
 

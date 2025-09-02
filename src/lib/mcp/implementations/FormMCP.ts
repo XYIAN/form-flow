@@ -5,8 +5,7 @@
  * updates, and metadata generation.
  */
 
-
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { MCPResult, ValidationResult, MCPError } from '../protocols/types'
 import { MCPLogger } from './logger'
