@@ -114,36 +114,38 @@ export default function FormViewPage({ params }: FormViewPageProps) {
 	}
 
 	const renderField = (field: FormField) => {
-		// Use MCP to render field with React Hook Form integration
-		const result = FieldMCP.render({
-			field,
-			control: {
-				[field.id]: {
-					value: control._formValues?.[field.id] || '',
-					onChange: (value: unknown) => control._setValue(field.id, value),
-					onBlur: () => control._trigger(field.id),
-				},
-			},
-			errors,
-		})
-
-		if (!result.success) {
-			MCPLogger.error(
-				'renderField',
-				result.errors?.[0] || new Error('Field rendering failed')
-			)
-			return (
-				<div className='p-error'>Failed to render field: {field.label}</div>
-			)
-		}
-
 		// Wrap in Controller for React Hook Form integration
 		return (
 			<Controller
 				name={field.id}
 				control={control}
 				rules={FieldMCP.getValidationRules(field)}
-				render={() => <div>{result.data}</div>}
+				render={({ field: { onChange, value, onBlur } }) => {
+					// Use MCP to render field with React Hook Form integration
+					const result = FieldMCP.render({
+						field,
+						control: {
+							[field.id]: {
+								value: value || '',
+								onChange: (newValue: unknown) => onChange(newValue),
+								onBlur: onBlur,
+							},
+						},
+						errors,
+					})
+
+					if (!result.success) {
+						MCPLogger.error(
+							'renderField',
+							result.errors?.[0] || new Error('Field rendering failed')
+						)
+						return (
+							<div className='p-error'>Failed to render field: {field.label}</div>
+						)
+					}
+
+					return <div>{result.data}</div>
+				}}
 			/>
 		)
 	}

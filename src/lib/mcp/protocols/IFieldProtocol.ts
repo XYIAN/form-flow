@@ -5,7 +5,7 @@
  * within the MCP system.
  */
 
-import { MCPResult, RenderResult, FieldRenderProps } from './types'
+import { MCPResult, FieldRenderProps } from './types'
 import { FormField, FieldType } from '@/types'
 
 export interface IFieldProtocol {

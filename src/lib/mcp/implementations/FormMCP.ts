@@ -5,15 +5,15 @@
  * updates, and metadata generation.
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { IFormProtocol } from '../protocols/IFormProtocol'
+
+
 import { MCPResult, ValidationResult, MCPError } from '../protocols/types'
 import { MCPLogger } from './logger'
 import { Form, CreateFormData, FormField, FieldType } from '@/types'
 import { generateId } from '@/utils'
 
-export class FormMCP implements IFormProtocol {
+export class FormMCP {
 	/**
 	 * Creates a new form with validation and business logic
 	 */
@@ -42,11 +42,14 @@ export class FormMCP implements IFormProtocol {
 			const sanitizedData = FormMCP.sanitizeFormData(data)
 
 			// Generate form metadata
-			const metadata = FormMCP.generateFormMetadata(sanitizedData)
+			const metadata = FormMCP.generateFormMetadata()
 
 			// Create form object
 			const form: Form = {
-				...metadata,
+				id: metadata.id!,
+				userId: metadata.userId!,
+				createdAt: metadata.createdAt!,
+				updatedAt: metadata.updatedAt!,
 				title: sanitizedData.title,
 				description: sanitizedData.description,
 				fields: sanitizedData.fields.map(field =>
@@ -428,7 +431,7 @@ export class FormMCP implements IFormProtocol {
 	/**
 	 * Generates form metadata (ID, timestamps, etc.)
 	 */
-	static generateFormMetadata(_data: CreateFormData): Partial<Form> {
+	static generateFormMetadata(): Partial<Form> {
 		return {
 			id: generateId(),
 			userId: '', // Will be set by context

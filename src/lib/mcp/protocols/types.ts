@@ -57,7 +57,7 @@ export interface FieldRenderProps {
 			onBlur: () => void
 		}
 	>
-	errors: Record<string, { message?: string }>
+	errors: unknown
 	onChange?: (value: unknown) => void
 	onBlur?: () => void
 	value?: unknown
@@ -66,7 +66,7 @@ export interface FieldRenderProps {
 export interface FormValidationContext {
 	form: import('@/types').Form
 	submissionData: Record<string, unknown>
-	fieldErrors: Record<string, string[]>
+	fieldErrors: Record<string, unknown>
 }
 
 export interface SubmissionValidationResult {

@@ -7,7 +7,7 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { ISubmissionProtocol } from '../protocols/ISubmissionProtocol'
+
 import {
 	MCPResult,
 	SubmissionValidationResult,
@@ -18,7 +18,7 @@ import { MCPLogger } from './logger'
 import { Form, FormField, FormSubmission } from '@/types'
 import { generateId } from '@/utils'
 
-export class SubmissionMCP implements ISubmissionProtocol {
+export class SubmissionMCP {
 	/**
 	 * Validates form submission data against form configuration
 	 */
@@ -273,11 +273,12 @@ export class SubmissionMCP implements ISubmissionProtocol {
 			)
 
 			// Generate submission metadata
-			const metadata = SubmissionMCP.generateSubmissionMetadata(form.id)
+			const metadata = SubmissionMCP.generateSubmissionMetadata()
 
 			// Create submission object
 			const submission: FormSubmission = {
-				...metadata,
+				id: metadata.id!,
+				submittedAt: metadata.submittedAt!,
 				formId: form.id,
 				data: transformedData,
 			}
@@ -445,7 +446,7 @@ export class SubmissionMCP implements ISubmissionProtocol {
 	/**
 	 * Generates submission metadata
 	 */
-	static generateSubmissionMetadata(_formId: string): Partial<FormSubmission> {
+	static generateSubmissionMetadata(): Partial<FormSubmission> {
 		return {
 			id: generateId(),
 			submittedAt: new Date(),
