@@ -14,7 +14,7 @@ export class FormMCP {
 	/**
 	 * Creates a new form with validation and business logic
 	 */
-	static createForm(data: CreateFormData): MCPResult<Form> {
+	static createForm(data: CreateFormData, userId: string): MCPResult<Form> {
 		const tracker = MCPLogger.createPerformanceTracker('createForm')
 
 		try {
@@ -39,7 +39,7 @@ export class FormMCP {
 			const sanitizedData = FormMCP.sanitizeFormData(data)
 
 			// Generate form metadata
-			const metadata = FormMCP.generateFormMetadata()
+			const metadata = FormMCP.generateFormMetadata(userId)
 
 			// Create form object
 			const form: Form = {
@@ -428,10 +428,10 @@ export class FormMCP {
 	/**
 	 * Generates form metadata (ID, timestamps, etc.)
 	 */
-	static generateFormMetadata(): Partial<Form> {
+	static generateFormMetadata(userId: string): Partial<Form> {
 		return {
 			id: generateId(),
-			userId: '', // Will be set by context
+			userId: userId,
 			createdAt: new Date(),
 			updatedAt: new Date(),
 		}

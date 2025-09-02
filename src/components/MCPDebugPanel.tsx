@@ -142,7 +142,7 @@ export default function MCPDebugPanel({ className = '' }: MCPDebugPanelProps) {
 			title: 'Test Form',
 			description: 'A test form created from MCP Debug Panel',
 			fields: [testField],
-		})
+		}, 'test-user-id')
 
 		if (result.success) {
 			MCPLogger.debug(
