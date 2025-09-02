@@ -178,6 +178,7 @@ export default function MCPDebugPanel({ className = '' }: MCPDebugPanelProps) {
 		}
 	}
 
+	// If not visible, show a button to open the panel
 	if (!isVisible) {
 		return (
 			<Button
