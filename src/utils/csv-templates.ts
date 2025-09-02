@@ -16,7 +16,7 @@ export const CSV_TEMPLATES: Record<string, CSVTemplate> = {
 			['Jane Smith', 'jane@example.com', '(555) 987-6543', 'Tech Inc', 'Developer', '456 Oak Ave', 'San Francisco', 'CA', '94102', 'United States'],
 			['Bob Johnson', 'bob@example.com', '(555) 456-7890', 'Design Co', 'Designer', '789 Pine Rd', 'Austin', 'TX', '73301', 'United States']
 		],
-		fieldTypes: ['text', 'email', 'phone', 'text', 'text', 'address', 'text', 'state', 'zipcode', 'country'],
+		fieldTypes: ['text', 'email', 'phone', 'text', 'text', 'address', 'text', 'state', 'zipcode', 'country'] as FieldType[],
 		instructions: 'This template includes common contact fields. Replace the sample data with your actual data, keeping the header row intact.'
 	},
 	
@@ -29,7 +29,7 @@ export const CSV_TEMPLATES: Record<string, CSVTemplate> = {
 			['Jane', 'Smith', 'jane@example.com', '(555) 987-6543', 'Tech Inc', 'None', 'John Smith', '(555) 987-6544', '2024-01-16', 'Pending'],
 			['Bob', 'Johnson', 'bob@example.com', '(555) 456-7890', 'Design Co', 'Gluten-Free', 'Mary Johnson', '(555) 456-7891', '2024-01-17', 'Paid']
 		],
-		fieldTypes: ['text', 'text', 'email', 'phone', 'text', 'textarea', 'text', 'phone', 'date', 'select'],
+		fieldTypes: ['text', 'text', 'email', 'phone', 'text', 'textarea', 'text', 'phone', 'date', 'select'] as FieldType[],
 		instructions: 'Perfect for event registrations. Include dietary restrictions, emergency contacts, and payment status tracking.'
 	},
 	
@@ -42,7 +42,7 @@ export const CSV_TEMPLATES: Record<string, CSVTemplate> = {
 			['CUST002', 'Basic Widget', '2024-01-12', '3', '3', '3', '4', 'Maybe', 'Good product but could be better', 'No'],
 			['CUST003', 'Deluxe Widget', '2024-01-14', '4', '4', '4', '3', 'Yes', 'Great quality, fast shipping', 'Yes']
 		],
-		fieldTypes: ['text', 'text', 'date', 'rating', 'rating', 'rating', 'rating', 'yesno', 'textarea', 'yesno'],
+		fieldTypes: ['text', 'text', 'date', 'rating', 'rating', 'rating', 'rating', 'yesno', 'textarea', 'yesno'] as FieldType[],
 		instructions: 'Ideal for customer feedback collection. Includes rating scales and permission tracking for follow-up contact.'
 	},
 	
@@ -55,7 +55,7 @@ export const CSV_TEMPLATES: Record<string, CSVTemplate> = {
 			['Jane', 'Smith', 'jane@example.com', '(555) 987-6543', '456 Oak Ave', 'San Francisco', 'CA', '94102', 'UX Designer', '3', 'Master', 'Figma, Sketch, Adobe Creative Suite', '2 weeks', '75000', 'Bob Johnson - bob@example.com'],
 			['Bob', 'Johnson', 'bob@example.com', '(555) 456-7890', '789 Pine Rd', 'Austin', 'TX', '73301', 'Product Manager', '7', 'MBA', 'Agile, Scrum, Product Strategy', '1 month', '95000', 'Alice Brown - alice@example.com']
 		],
-		fieldTypes: ['text', 'text', 'email', 'phone', 'address', 'text', 'state', 'zipcode', 'text', 'number', 'select', 'tags', 'text', 'money', 'textarea'],
+		fieldTypes: ['text', 'text', 'email', 'phone', 'address', 'text', 'state', 'zipcode', 'text', 'number', 'select', 'tags', 'text', 'money', 'textarea'] as FieldType[],
 		instructions: 'Complete job application template. Includes personal info, experience, education, and references.'
 	},
 	

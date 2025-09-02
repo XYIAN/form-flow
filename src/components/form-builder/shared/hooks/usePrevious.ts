@@ -6,11 +6,11 @@ import { useEffect, useRef } from 'react'
  * @returns The previous value
  */
 export function usePrevious<T>(value: T): T | undefined {
-  const ref = useRef<T>()
+	const ref = useRef<T>()
 
-  useEffect(() => {
-    ref.current = value
-  }, [value])
+	useEffect(() => {
+		ref.current = value
+	}, [value])
 
-  return ref.current
+	return ref.current
 }
