@@ -143,9 +143,7 @@ export default function FormViewPage({ params }: FormViewPageProps) {
 				name={field.id}
 				control={control}
 				rules={FieldMCP.getValidationRules(field)}
-				render={() => (
-					<div>{result.data}</div>
-				)}
+				render={() => <div>{result.data}</div>}
 			/>
 		)
 	}
