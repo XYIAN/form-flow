@@ -7,7 +7,6 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-
 import {
 	MCPResult,
 	SubmissionValidationResult,
@@ -469,7 +468,7 @@ export class SubmissionMCP {
 				formatted[field.id] = 'No value provided'
 			} else if (Array.isArray(value)) {
 				formatted[field.id] = value.join(', ')
-			} else if (value instanceof Date) {
+			} else if (value && typeof value === 'object' && value instanceof Date) {
 				formatted[field.id] = value.toLocaleDateString()
 			} else {
 				formatted[field.id] = String(value)
