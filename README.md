@@ -193,6 +193,22 @@ The application uses PrimeReact components with the Lara Dark Purple theme:
 - **Prettier**: Code formatting
 - **Conventions**: PascalCase for components, camelCase for variables
 
+## 📚 Documentation
+
+### MCP (Model Context Protocol) Documentation
+
+- **[MCP Development Guide](docs/MCP_DEVELOPMENT_GUIDE.md)** - Complete MCP documentation for developers and AI assistants
+- **[MCP Quick Reference](docs/MCP_QUICK_REFERENCE.md)** - Quick reference for AI assistants and developers
+- **[MCP Overview](docs/mcp-overview.md)** - Detailed explanation of the MCP architecture
+- **[Field Types](docs/mcp-field.md)** - Complete guide to supported field types
+
+### Key Features
+
+- **Interactive Debugging**: Use the MCP Debug Panel on the main page to test MCP operations in real-time
+- **Performance Tracking**: Built-in execution time monitoring for all MCP operations
+- **Comprehensive Logging**: Multi-level logging system with real-time debugging capabilities
+- **Type Safety**: Full TypeScript support with comprehensive interfaces and error handling
+
 ## 🚀 Deployment
 
 The application is designed to be deployed on Netlify:

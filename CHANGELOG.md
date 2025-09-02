@@ -95,6 +95,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Error Objects**: Structured error handling with context and suggestions
 - **Logging System**: Comprehensive logging with different levels and performance tracking
 
+## [1.2.0] - 2024-12-19
+
+### Added
+
+- **Comprehensive Input Library**: Expanded from 14 to 25+ field types with full MCP integration
+- **InputLibraryMCP**: New MCP implementation for managing input type configurations and metadata
+- **Categorized Field Types**: Organized field types into 9 logical categories for better UX
+- **Enhanced Field Types**:
+  - **Basic Inputs**: text, email, password, number, url, search
+  - **Date & Time**: date, datetime, time, month, week, year
+  - **Advanced Text**: textarea, rich-text, markdown
+  - **Selection**: select, multiselect, checkbox, radio, yesno, toggle
+  - **Financial**: money, percentage, currency
+  - **Contact**: phone, address, country, state, zipcode
+  - **File & Media**: file, image, signature, audio, video
+  - **Rating & Scale**: rating, slider, range, likert
+  - **Specialized**: color, tags, autocomplete, location, matrix
+- **Enhanced FieldMCP**: Complete component props and validation for all new field types
+- **Advanced Validation**: Type-specific validation rules for all field types
+- **Smart Defaults**: Auto-generated options for field types that require them
+- **Category-Based UI**: Form builder now groups fields by category for better organization
+- **Enhanced Data Transformation**: Improved value transformation for display and storage
+
+### Changed
+
+- **Form Creation UI**: Updated to use categorized field selection with improved UX
+- **Field Validation**: Enhanced validation rules for all field types with specific patterns
+- **Component Mapping**: Extended FieldMCP to support all new field types with proper PrimeReact integration
+- **Default Options**: Smart default options for country, state, and likert scale fields
+
+### Technical Improvements
+
+- **MCP Architecture**: InputLibraryMCP follows established MCP patterns with full error handling and logging
+- **Type Safety**: Complete TypeScript coverage for all new field types and configurations
+- **Performance**: Optimized field rendering with proper component mapping
+- **Validation**: Comprehensive validation rules with field-specific patterns and constraints
+- **Data Handling**: Enhanced value transformation for complex field types
+
 ## [Unreleased]
 
 ### Planned Features

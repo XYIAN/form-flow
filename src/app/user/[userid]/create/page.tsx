@@ -12,7 +12,7 @@ import { Message } from 'primereact/message'
 import { useAuth } from '@/context/AuthContext'
 import { useForms } from '@/context/FormContext'
 import { FormField, FieldType } from '@/types'
-import { FIELD_TYPES } from '@/constants'
+import { FIELD_TYPES, FIELD_CATEGORIES } from '@/constants'
 import { generateId } from '@/utils'
 import { FieldMCP, MCPLogger } from '@/lib/mcp'
 import Navigation from '@/components/Navigation'
@@ -45,6 +45,7 @@ export default function CreateForm({ params }: CreateFormProps) {
 	const [fieldRequired, setFieldRequired] = useState(false)
 	const [fieldPlaceholder, setFieldPlaceholder] = useState('')
 	const [fieldOptions, setFieldOptions] = useState('')
+	const [selectedCategory, setSelectedCategory] = useState<string>('basic')
 
 	// CSV data
 	const [csvHeaders, setCsvHeaders] = useState<string[]>([])
@@ -128,6 +129,11 @@ export default function CreateForm({ params }: CreateFormProps) {
 		setFieldRequired(field.required)
 		setFieldPlaceholder(field.placeholder || '')
 		setFieldOptions(field.options?.join(', ') || '')
+		// Set the category based on the field type
+		const fieldTypeConfig = FIELD_TYPES.find(ft => ft.value === field.type)
+		if (fieldTypeConfig) {
+			setSelectedCategory(fieldTypeConfig.category)
+		}
 	}
 
 	const handleUpdateField = () => {
@@ -182,6 +188,7 @@ export default function CreateForm({ params }: CreateFormProps) {
 		setFieldRequired(false)
 		setFieldPlaceholder('')
 		setFieldOptions('')
+		setSelectedCategory('basic')
 	}
 
 	const handleCsvUpload = (event: { files: File[] }) => {
@@ -408,11 +415,36 @@ export default function CreateForm({ params }: CreateFormProps) {
 										</div>
 										<div className='w-full md:w-1/2'>
 											<label className='block text-sm font-medium text-gray-300 mb-2'>
+												Field Category
+											</label>
+											<Dropdown
+												value={selectedCategory}
+												options={FIELD_CATEGORIES}
+												onChange={e => {
+													setSelectedCategory(e.value)
+													// Reset field type when category changes
+													const categoryTypes = FIELD_TYPES.filter(
+														ft => ft.category === e.value
+													)
+													if (categoryTypes.length > 0) {
+														setFieldType(categoryTypes[0].value)
+													}
+												}}
+												optionLabel='name'
+												optionValue='id'
+												placeholder='Select category'
+												className='w-full'
+											/>
+										</div>
+										<div className='w-full md:w-1/2'>
+											<label className='block text-sm font-medium text-gray-300 mb-2'>
 												Field Type
 											</label>
 											<Dropdown
 												value={fieldType}
-												options={FIELD_TYPES}
+												options={FIELD_TYPES.filter(
+													ft => ft.category === selectedCategory
+												)}
 												onChange={e => setFieldType(e.value)}
 												optionLabel='label'
 												optionValue='value'

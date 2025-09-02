@@ -16,7 +16,7 @@ export * from './protocols/ISubmissionProtocol'
 export { FormMCP } from './implementations/FormMCP'
 export { FieldMCP } from './implementations/FieldMCP'
 export { SubmissionMCP } from './implementations/SubmissionMCP'
-
+export { InputLibraryMCP } from './implementations/InputLibraryMCP'
 export { MCPLogger } from './implementations/logger'
 
 // MCP Configuration
