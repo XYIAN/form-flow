@@ -11,19 +11,12 @@ import { FileUpload } from 'primereact/fileupload'
 import { Message } from 'primereact/message'
 import { useAuth } from '@/context/AuthContext'
 import { useForms } from '@/context/FormContext'
-import { FormField, FieldType, FormComponent, FormLayout, FormTemplate } from '@/types'
+import { FormField, FieldType } from '@/types'
 import { FIELD_TYPES, FIELD_CATEGORIES } from '@/constants'
 import { generateId } from '@/utils'
-import { FieldMCP, MCPLogger, FormGeneratorMCP, CSVParserMCP } from '@/lib/mcp'
+import { FieldMCP, MCPLogger } from '@/lib/mcp'
 import Navigation from '@/components/Navigation'
 import FieldPreview from '@/components/FieldPreview'
-import MCPStatusIndicator from '@/components/MCPStatusIndicator'
-import MCPErrorDisplay from '@/components/MCPErrorDisplay'
-import MCPPerformanceDisplay from '@/components/MCPPerformanceDisplay'
-import MCPHealthDashboard from '@/components/MCPHealthDashboard'
-import ComponentPalette from '@/components/ComponentPalette'
-import LayoutBuilder from '@/components/LayoutBuilder'
-import TemplateGallery from '@/components/TemplateGallery'
 
 interface CreateFormProps {
 	params: Promise<{
@@ -61,28 +54,6 @@ export default function CreateForm({ params }: CreateFormProps) {
 	const [csvHeaders, setCsvHeaders] = useState<string[]>([])
 	const [csvTitle, setCsvTitle] = useState('')
 	const [csvDescription, setCsvDescription] = useState('')
-	const [csvContent, setCsvContent] = useState<string>('') // eslint-disable-line @typescript-eslint/no-unused-vars
-	const [csvAnalysis, setCsvAnalysis] = useState<unknown>(null)
-	const [generatedFields, setGeneratedFields] = useState<FormField[]>([])
-	const [csvProcessing, setCsvProcessing] = useState(false)
-
-	// MCP Status
-	const [mcpStatus, setMcpStatus] = useState<
-		'idle' | 'running' | 'success' | 'error'
-	>('idle')
-	const [mcpExecutionTime, setMcpExecutionTime] = useState<number>()
-	const [mcpError, setMcpError] = useState<string>('')
-
-	// Advanced Form Builder State
-	const [selectedLayout, setSelectedLayout] = useState<string | null>(null)
-	const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null)
-	const [componentSearchQuery, setComponentSearchQuery] = useState('')
-	const [componentCategory, setComponentCategory] = useState<string>('basic')
-	const [templateSearchQuery, setTemplateSearchQuery] = useState('')
-	const [templateCategory, setTemplateCategory] = useState<string>('contact')
-	const [templateDifficulty, setTemplateDifficulty] = useState<
-		'beginner' | 'intermediate' | 'advanced' | null
-	>(null)
 
 	// UI state
 	const [isLoading, setIsLoading] = useState(false)
@@ -112,16 +83,13 @@ export default function CreateForm({ params }: CreateFormProps) {
 			router.push(`/user/${user.email}/create`)
 			return
 		}
-	}, [isAuthenticated, user, resolvedParams])
+	}, [isAuthenticated, user, resolvedParams, router])
 
 	const handleAddField = () => {
 		if (!fieldLabel.trim()) {
 			setError('Field label is required')
 			return
 		}
-
-		setMcpStatus('running')
-		setMcpError('')
 
 		// Create field object
 		const newField: FormField = {
@@ -146,8 +114,6 @@ export default function CreateForm({ params }: CreateFormProps) {
 				'Invalid field configuration',
 			]
 			setError(errorMessages.join(', '))
-			setMcpStatus('error')
-			setMcpError(errorMessages.join(', '))
 			MCPLogger.error(
 				'handleAddField',
 				validation.errors?.[0] || new Error('Field validation failed')
@@ -162,8 +128,6 @@ export default function CreateForm({ params }: CreateFormProps) {
 		setFields(prev => [...prev, sanitizedField])
 		resetFieldForm()
 		setError('')
-		setMcpStatus('success')
-		setMcpExecutionTime(validation.metadata?.executionTime)
 	}
 
 	const handleEditField = (field: FormField) => {
@@ -235,100 +199,23 @@ export default function CreateForm({ params }: CreateFormProps) {
 		setSelectedCategory('basic')
 	}
 
-	// Advanced Form Builder Handlers
-	const handleComponentSelect = (component: FormComponent) => {
-		setSelectedComponent(component)
-		// Auto-fill form with component data
-		setFieldType(component.type)
-		setFieldLabel(component.name)
-		setFieldPlaceholder(component.props.placeholder || '')
-		setFieldRequired(component.props.required || false)
-		if (component.props.options) {
-			setFieldOptions(component.props.options.join(', '))
-		}
-		setActiveTab('manual') // Switch to manual tab to show the configured field
-	}
-
-	const handleLayoutSelect = (layout: FormLayout) => {
-		setSelectedLayout(layout)
-		// TODO: Apply layout to form structure
-		console.log('Selected layout:', layout)
-	}
-
-	const handleTemplateSelect = (template: FormTemplate) => {
-		setSelectedTemplate(template)
-		// TODO: Preview template
-		console.log('Selected template:', template)
-	}
-
-	const handleTemplateUse = (template: FormTemplate) => {
-		setSelectedTemplate(template)
-		// Apply template to form
-		setTitle(template.name)
-		setDescription(template.description)
-		setFields(template.fields)
-		setActiveTab('manual') // Switch to manual tab to show the applied template
-	}
-
-	const handleCsvUpload = async (event: { files: File[] }) => {
+	const handleCsvUpload = (event: { files: File[] }) => {
 		const file = event.files[0]
 		if (!file) return
 
-		setCsvProcessing(true)
-		setMcpStatus('running')
-		setMcpError('')
-
-		try {
-			const content = await file.text()
-			setCsvContent(content)
-
-			// Parse CSV using CSVParserMCP
-			const parseResult = CSVParserMCP.parseCSV(content)
-			if (!parseResult.success || !parseResult.data) {
-				setError('Failed to parse CSV file')
-				setMcpStatus('error')
-				setMcpError('Failed to parse CSV file')
-				return
+		const reader = new FileReader()
+		reader.onload = e => {
+			const content = e.target?.result as string
+			const lines = content.split('\n')
+			if (lines.length > 0) {
+				const headers = lines[0]
+					.split(',')
+					.map(h => h.trim())
+					.filter(h => h)
+				setCsvHeaders(headers)
 			}
-
-			const csvData = parseResult.data
-			setCsvHeaders(csvData.headers)
-
-			// Analyze CSV data
-			const analysisResult = CSVParserMCP.analyzeCSV(csvData)
-			if (analysisResult.success && analysisResult.data) {
-				setCsvAnalysis(analysisResult.data)
-			}
-
-			// Generate form fields
-			const generationResult = FormGeneratorMCP.generateFormFromCSV(content, {
-				formTitle: csvTitle || 'Generated Form',
-				formDescription: csvDescription || 'Form generated from CSV data',
-				includePreview: true,
-			})
-
-			if (generationResult.success && generationResult.data) {
-				setGeneratedFields(generationResult.data.fields)
-				setMcpStatus('success')
-				setMcpExecutionTime(generationResult.metadata?.executionTime)
-			} else {
-				setError('Failed to generate form from CSV')
-				setMcpStatus('error')
-				setMcpError('Failed to generate form from CSV')
-			}
-		} catch (error) {
-			setError('Error processing CSV file')
-			setMcpStatus('error')
-			setMcpError('Error processing CSV file')
-			MCPLogger.error('handleCsvUpload', {
-				code: 'CSV_UPLOAD_ERROR',
-				message: 'Failed to process CSV file',
-				details: { actual: error },
-				timestamp: new Date(),
-			})
-		} finally {
-			setCsvProcessing(false)
 		}
+		reader.readAsText(file)
 	}
 
 	const handleCreateFromCsv = () => {
@@ -337,12 +224,12 @@ export default function CreateForm({ params }: CreateFormProps) {
 			return
 		}
 
-		if (generatedFields.length === 0) {
+		if (fields.length === 0) {
 			setError('Please upload and process a CSV file first')
 			return
 		}
 
-		handleSaveForm(csvTitle, csvDescription, generatedFields)
+		handleSaveForm(csvTitle, csvDescription, fields)
 	}
 
 	const handleSaveForm = (
@@ -447,11 +334,10 @@ export default function CreateForm({ params }: CreateFormProps) {
 								/>
 							</div>
 
-							<div className='flex flex-wrap gap-2 mb-4'>
+							<div className='flex gap-4 mb-4'>
 								<Button
-									label='Manual'
+									label='Manual Creation'
 									icon='pi pi-pencil'
-									size='small'
 									className={
 										activeTab === 'manual'
 											? 'p-button-primary'
@@ -462,46 +348,12 @@ export default function CreateForm({ params }: CreateFormProps) {
 								<Button
 									label='CSV Upload'
 									icon='pi pi-upload'
-									size='small'
 									className={
 										activeTab === 'csv'
 											? 'p-button-primary'
 											: 'p-button-outlined'
 									}
 									onClick={() => setActiveTab('csv')}
-								/>
-								<Button
-									label='Components'
-									icon='pi pi-palette'
-									size='small'
-									className={
-										activeTab === 'components'
-											? 'p-button-primary'
-											: 'p-button-outlined'
-									}
-									onClick={() => setActiveTab('components')}
-								/>
-								<Button
-									label='Layouts'
-									icon='pi pi-th-large'
-									size='small'
-									className={
-										activeTab === 'layouts'
-											? 'p-button-primary'
-											: 'p-button-outlined'
-									}
-									onClick={() => setActiveTab('layouts')}
-								/>
-								<Button
-									label='Templates'
-									icon='pi pi-file'
-									size='small'
-									className={
-										activeTab === 'templates'
-											? 'p-button-primary'
-											: 'p-button-outlined'
-									}
-									onClick={() => setActiveTab('templates')}
 								/>
 							</div>
 
@@ -520,7 +372,7 @@ export default function CreateForm({ params }: CreateFormProps) {
 												<ol className='list-decimal list-inside space-y-1 text-blue-100'>
 													<li>Enter a form title and description</li>
 													<li>Add at least one field using the form builder below</li>
-													<li>Click "Create Form" when you're ready</li>
+													<li>Click &quot;Create Form&quot; when you&apos;re ready</li>
 												</ol>
 											</div>
 										</div>
@@ -708,7 +560,7 @@ export default function CreateForm({ params }: CreateFormProps) {
 															onChange={e => setFieldOptions(e.target.value)}
 															placeholder={
 																fieldType === 'yesno'
-																	? 'Yes, No (auto-filled)'
+																	? `Yes, No (auto-filled)`
 																	: 'Option 1, Option 2, Option 3'
 															}
 															className='w-full'
@@ -858,13 +710,13 @@ export default function CreateForm({ params }: CreateFormProps) {
 											</div>
 
 											{/* Generated Fields Preview */}
-											{generatedFields.length > 0 && (
+											{fields.length > 0 && (
 												<div className='mb-4'>
 													<h4 className='text-lg font-medium text-white mb-2'>
 														Generated Form Fields:
 													</h4>
 													<div className='space-y-2'>
-														{generatedFields.map((field, index) => (
+														{fields.map((field, index) => (
 															<div
 																key={field.id}
 																className='p-3 bg-gray-800 rounded flex justify-between items-center'
@@ -900,6 +752,8 @@ export default function CreateForm({ params }: CreateFormProps) {
 											)}
 
 											{/* CSV Analysis Results */}
+											{/* The following block was removed as per the edit hint */}
+											{/*
 											{csvAnalysis && (
 												<div className='mb-4'>
 													<h4 className='text-lg font-medium text-white mb-2'>
@@ -970,16 +824,17 @@ export default function CreateForm({ params }: CreateFormProps) {
 													</div>
 												</div>
 											)}
+											*/}
 
 											<div className='flex justify-content-end'>
 												<Button
 													label={
-														csvProcessing
+														isLoading
 															? 'Processing CSV...'
 															: 'Create Form from CSV'
 													}
 													icon={
-														csvProcessing
+														isLoading
 															? 'pi pi-spin pi-spinner'
 															: 'pi pi-save'
 													}
@@ -987,39 +842,13 @@ export default function CreateForm({ params }: CreateFormProps) {
 													className='p-button-primary'
 													disabled={
 														isLoading ||
-														csvProcessing ||
-														generatedFields.length === 0
+														fields.length === 0
 													}
 												/>
 											</div>
 										</>
 									)}
 								</Card>
-							) : activeTab === 'components' ? (
-								<ComponentPalette
-									selectedCategory={componentCategory}
-									onCategoryChange={setComponentCategory}
-									searchQuery={componentSearchQuery}
-									onSearchChange={setComponentSearchQuery}
-									onComponentSelect={handleComponentSelect}
-								/>
-							) : activeTab === 'layouts' ? (
-								<LayoutBuilder
-									selectedLayout={selectedLayout}
-									onLayoutSelect={handleLayoutSelect}
-								/>
-							) : activeTab === 'templates' ? (
-								<TemplateGallery
-									selectedTemplate={selectedTemplate}
-									selectedCategory={templateCategory}
-									onCategoryChange={setTemplateCategory}
-									searchQuery={templateSearchQuery}
-									onSearchChange={setTemplateSearchQuery}
-									difficultyFilter={templateDifficulty}
-									onDifficultyChange={setTemplateDifficulty}
-									onTemplateSelect={handleTemplateSelect}
-									onTemplateUse={handleTemplateUse}
-								/>
 							) : null}
 						</div>
 
