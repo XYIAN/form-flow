@@ -48,16 +48,18 @@ npm run dev
 src/
 ├── app/                    # Next.js App Router pages
 │   ├── page.tsx           # Login page
-│   ├── user/
-│   │   └── [userid]/      # User dashboard
-│   │       ├── page.tsx   # Dashboard with forms list
-│   │       ├── create/    # Form creation page
-│   │       └── [formid]/  # Form rendering page
+│   ├── form/[formid]/     # Public form view
+│   └── user/[userid]/     # User dashboard & management
 ├── components/            # Reusable components
 │   └── Navigation.tsx     # Responsive navigation
 ├── context/              # React Context providers
 │   ├── AuthContext.tsx   # Authentication state
-│   └── FormContext.tsx   # Form management state
+│   └── FormContext.tsx   # Form management state (MCP integrated)
+├── lib/                  # Business logic layer
+│   └── mcp/              # Model Context Protocol
+│       ├── protocols/    # MCP interfaces & types
+│       ├── implementations/ # MCP implementations
+│       └── index.ts      # MCP exports
 ├── types/                # TypeScript type definitions
 │   └── index.ts
 ├── utils/                # Utility functions
@@ -65,6 +67,52 @@ src/
 └── constants/            # Application constants
     └── index.ts
 ```
+
+## 🏛️ Architecture
+
+Form Flow v1.1.0 implements the **Model Context Protocol (MCP)** pattern for clean architecture and separation of concerns:
+
+### MCP Layer Structure
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Form Flow Application                    │
+├─────────────────────────────────────────────────────────────┤
+│  UI Layer (React Components)                               │
+│  ├── Form Creation Pages                                   │
+│  ├── Form Rendering Pages                                  │
+│  └── Dashboard & Management                                │
+├─────────────────────────────────────────────────────────────┤
+│  Context Layer (React Context API)                         │
+│  ├── AuthContext                                           │
+│  └── FormContext (MCP Integration)                         │
+├─────────────────────────────────────────────────────────────┤
+│  MCP Layer (Business Logic)                                │
+│  ├── FormMCP (Form Operations)                             │
+│  ├── FieldMCP (Field Rendering & Validation)               │
+│  ├── SubmissionMCP (Submission Processing)                 │
+│  └── MCPLogger (Logging & Debugging)                       │
+├─────────────────────────────────────────────────────────────┤
+│  Protocol Layer (Interfaces & Types)                       │
+│  ├── IFormProtocol                                         │
+│  ├── IFieldProtocol                                        │
+│  ├── ISubmissionProtocol                                   │
+│  └── MCP Types & Error Objects                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Key Benefits
+- **Separation of Concerns**: Business logic separated from UI components
+- **Type Safety**: Complete TypeScript coverage with compile-time checking
+- **Error Handling**: Structured error objects with rich context
+- **Performance**: Built-in performance tracking and optimization
+- **Debugging**: Comprehensive logging and debugging capabilities
+- **Maintainability**: Centralized business logic with consistent patterns
+
+### MCP Components
+- **FormMCP**: Handles form creation, validation, and management
+- **FieldMCP**: Manages field rendering with PrimeReact components
+- **SubmissionMCP**: Processes form submissions with validation
+- **MCPLogger**: Provides structured logging and performance tracking
 
 ## 🔐 Authentication
 

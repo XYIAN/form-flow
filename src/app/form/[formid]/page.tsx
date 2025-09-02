@@ -17,6 +17,7 @@ import { InputMask } from 'primereact/inputmask'
 import { FileUpload } from 'primereact/fileupload'
 import { useForms } from '@/context/FormContext'
 import { Form, FormField } from '@/types'
+import { FieldMCP, SubmissionMCP, MCPLogger } from '@/lib/mcp'
 
 interface FormViewPageProps {
 	params: Promise<{
@@ -64,283 +65,82 @@ export default function FormViewPage({ params }: FormViewPageProps) {
 	}, [resolvedParams, getFormById])
 
 	const onSubmit = (data: Record<string, string | number | boolean | string[] | Date>) => {
-		setSubmittedData(data)
+		if (!form) return
+
+		// Use MCP to validate and process submission
+		const validationContext = {
+			form,
+			submissionData: data,
+			fieldErrors: errors
+		}
+
+		const validationResult = SubmissionMCP.validateSubmission(validationContext)
+		
+		if (!validationResult.success) {
+			MCPLogger.error('onSubmit', validationResult.errors?.[0] || new Error('Submission validation failed'))
+			setError('Form submission failed. Please check your inputs.')
+			return
+		}
+
+		if (!validationResult.data?.isValid) {
+			setError('Please fix the errors in the form before submitting.')
+			return
+		}
+
+		// Process submission using MCP
+		const processResult = SubmissionMCP.processSubmission(form, data)
+		
+		if (!processResult.success) {
+			MCPLogger.error('onSubmit', processResult.errors?.[0] || new Error('Submission processing failed'))
+			setError('Failed to process form submission.')
+			return
+		}
+
+		// Format data for display using MCP
+		const formattedData = SubmissionMCP.formatSubmissionForDisplay(form, processResult.data!)
+		
+		setSubmittedData(formattedData)
 		setShowSubmissionModal(true)
+		setError('')
 		reset()
 	}
 
 	const renderField = (field: FormField) => {
-		const fieldName = field.id
-		const isRequired = field.required
+		// Use MCP to render field with React Hook Form integration
+		const result = FieldMCP.render({
+			field,
+			control: {
+				[field.id]: {
+					value: control._formValues?.[field.id] || '',
+					onChange: (value: any) => control._setValue(field.id, value),
+					onBlur: () => control._trigger(field.id)
+				}
+			},
+			errors
+		})
 
-		switch (field.type) {
-			case 'text':
-			case 'email':
-			case 'number':
-				return (
-					<Controller
-						name={fieldName}
-						control={control}
-						rules={{ required: isRequired ? `${field.label} is required` : false }}
-						render={({ field: { onChange, value } }) => (
-							<InputText
-								type={field.type}
-								value={value || ''}
-								onChange={onChange}
-								placeholder={field.placeholder}
-								className={`w-full ${errors[fieldName] ? 'p-invalid' : ''}`}
-							/>
-						)}
-					/>
-				)
-
-			case 'textarea':
-				return (
-					<Controller
-						name={fieldName}
-						control={control}
-						rules={{ required: isRequired ? `${field.label} is required` : false }}
-						render={({ field: { onChange, value } }) => (
-							<InputTextarea
-								value={value || ''}
-								onChange={onChange}
-								placeholder={field.placeholder}
-								rows={4}
-								className={`w-full ${errors[fieldName] ? 'p-invalid' : ''}`}
-							/>
-						)}
-					/>
-				)
-
-			case 'date':
-				return (
-					<Controller
-						name={fieldName}
-						control={control}
-						rules={{ required: isRequired ? `${field.label} is required` : false }}
-						render={({ field: { onChange, value } }) => (
-							<Calendar
-								value={value}
-								onChange={onChange}
-								showIcon
-								dateFormat="mm/dd/yy"
-								placeholder={field.placeholder || 'Select date'}
-								className={`w-full ${errors[fieldName] ? 'p-invalid' : ''}`}
-							/>
-						)}
-					/>
-				)
-
-			case 'select':
-				return (
-					<Controller
-						name={fieldName}
-						control={control}
-						rules={{ required: isRequired ? `${field.label} is required` : false }}
-						render={({ field: { onChange, value } }) => (
-							<Dropdown
-								value={value}
-								options={field.options || []}
-								onChange={onChange}
-								placeholder={field.placeholder || 'Select an option'}
-								className={`w-full ${errors[fieldName] ? 'p-invalid' : ''}`}
-							/>
-						)}
-					/>
-				)
-
-			case 'checkbox':
-				return (
-					<Controller
-						name={fieldName}
-						control={control}
-						rules={{ required: isRequired ? `${field.label} is required` : false }}
-						render={({ field: { onChange, value } }) => (
-							<div className="flex flex-column gap-2">
-								{field.options?.map((option, index) => (
-									<div key={index} className="flex align-items-center">
-										<Checkbox
-											inputId={`${fieldName}-${index}`}
-											value={option}
-											onChange={onChange}
-											checked={Array.isArray(value) ? value.includes(option) : false}
-										/>
-										<label htmlFor={`${fieldName}-${index}`} className="ml-2 text-white">
-											{option}
-										</label>
-									</div>
-								))}
-							</div>
-						)}
-					/>
-				)
-
-			case 'radio':
-				return (
-					<Controller
-						name={fieldName}
-						control={control}
-						rules={{ required: isRequired ? `${field.label} is required` : false }}
-						render={({ field: { onChange, value } }) => (
-							<div className="flex flex-column gap-2">
-								{field.options?.map((option, index) => (
-									<div key={index} className="flex align-items-center">
-										<RadioButton
-											inputId={`${fieldName}-${index}`}
-											name={fieldName}
-											value={option}
-											onChange={onChange}
-											checked={value === option}
-										/>
-										<label htmlFor={`${fieldName}-${index}`} className="ml-2 text-white">
-											{option}
-										</label>
-									</div>
-								))}
-							</div>
-						)}
-					/>
-				)
-
-			case 'money':
-				return (
-					<Controller
-						name={fieldName}
-						control={control}
-						rules={{ required: isRequired ? `${field.label} is required` : false }}
-						render={({ field: { onChange, value } }) => (
-							<InputMask
-								value={value || ''}
-								onChange={onChange}
-								placeholder={field.placeholder}
-								className={`w-full ${errors[fieldName] ? 'p-invalid' : ''}`}
-								mask="999,999,999.99"
-							/>
-						)}
-					/>
-				)
-
-			case 'phone':
-				return (
-					<Controller
-						name={fieldName}
-						control={control}
-						rules={{ required: isRequired ? `${field.label} is required` : false }}
-						render={({ field: { onChange, value } }) => (
-							<InputMask
-								value={value || ''}
-								onChange={onChange}
-								placeholder={field.placeholder}
-								className={`w-full ${errors[fieldName] ? 'p-invalid' : ''}`}
-								mask="(999) 999-9999"
-							/>
-						)}
-					/>
-				)
-
-			case 'address':
-				return (
-					<Controller
-						name={fieldName}
-						control={control}
-						rules={{ required: isRequired ? `${field.label} is required` : false }}
-						render={({ field: { onChange, value } }) => (
-							<InputText
-								value={value || ''}
-								onChange={onChange}
-								placeholder={field.placeholder}
-								className={`w-full ${errors[fieldName] ? 'p-invalid' : ''}`}
-							/>
-						)}
-					/>
-				)
-
-			case 'yesno':
-				return (
-					<Controller
-						name={fieldName}
-						control={control}
-						rules={{ required: isRequired ? `${field.label} is required` : false }}
-						render={({ field: { onChange, value } }) => (
-							<div className="flex flex-column gap-2">
-								{['Yes', 'No'].map((option, index) => (
-									<div key={index} className="flex align-items-center">
-										<RadioButton
-											inputId={`${fieldName}-${index}`}
-											name={fieldName}
-											value={option}
-											onChange={onChange}
-											checked={value === option}
-										/>
-										<label htmlFor={`${fieldName}-${index}`} className="ml-2 text-white">
-											{option}
-										</label>
-									</div>
-								))}
-							</div>
-						)}
-					/>
-				)
-
-			case 'file':
-				return (
-					<Controller
-						name={fieldName}
-						control={control}
-						rules={{ required: isRequired ? `${field.label} is required` : false }}
-						render={({ field: { onChange } }) => (
-							<FileUpload
-								mode="basic"
-								name={fieldName}
-								accept={field.allowedExtensions?.join(',') || '.pdf,.doc,.docx,.jpg,.jpeg,.png,.txt'}
-								maxFileSize={field.maxFileSize || 1000000}
-								customUpload
-								uploadHandler={(event) => {
-									onChange(event.files[0]?.name || '')
-								}}
-								auto
-								chooseLabel="Choose File"
-								className={`w-full ${errors[fieldName] ? 'p-invalid' : ''}`}
-							/>
-						)}
-					/>
-				)
-
-			case 'signature':
-				return (
-					<Controller
-						name={fieldName}
-						control={control}
-						rules={{ required: isRequired ? `${field.label} is required` : false }}
-						render={({ field: { onChange, value } }) => (
-							<InputMask
-								value={value || ''}
-								onChange={onChange}
-								placeholder={field.placeholder}
-								className={`w-full ${errors[fieldName] ? 'p-invalid' : ''}`}
-								mask="*"
-							/>
-						)}
-					/>
-				)
-
-			default:
-				return (
-					<Controller
-						name={fieldName}
-						control={control}
-						rules={{ required: isRequired ? `${field.label} is required` : false }}
-						render={({ field: { onChange, value } }) => (
-							<InputText
-								value={value || ''}
-								onChange={onChange}
-								placeholder={field.placeholder}
-								className={`w-full ${errors[fieldName] ? 'p-invalid' : ''}`}
-							/>
-						)}
-					/>
-				)
+		if (!result.success) {
+			MCPLogger.error('renderField', result.errors?.[0] || new Error('Field rendering failed'))
+			return (
+				<div className="p-error">
+					Failed to render field: {field.label}
+				</div>
+			)
 		}
+
+		// Wrap in Controller for React Hook Form integration
+		return (
+			<Controller
+				name={field.id}
+				control={control}
+				rules={FieldMCP.getValidationRules(field)}
+				render={({ field: { onChange, value, onBlur } }) => (
+					<div>
+						{result.data}
+					</div>
+				)}
+			/>
+		)
 	}
 
 	const renderSubmissionData = () => {

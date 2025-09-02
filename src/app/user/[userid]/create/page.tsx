@@ -14,6 +14,7 @@ import { useForms } from '@/context/FormContext'
 import { FormField, FieldType } from '@/types'
 import { FIELD_TYPES } from '@/constants'
 import { generateId } from '@/utils'
+import { FieldMCP, MCPLogger } from '@/lib/mcp'
 import Navigation from '@/components/Navigation'
 
 interface CreateFormProps {
@@ -84,41 +85,29 @@ export default function CreateForm({ params }: CreateFormProps) {
 			return
 		}
 
-		// Set default options for certain field types
-		let defaultOptions: string[] | undefined
-		let defaultPlaceholder = fieldPlaceholder.trim() || undefined
-
-		switch (fieldType) {
-			case 'yesno':
-				defaultOptions = ['Yes', 'No']
-				break
-			case 'money':
-				defaultPlaceholder = defaultPlaceholder || 'Enter amount (e.g., 1,234.56)'
-				break
-			case 'phone':
-				defaultPlaceholder = defaultPlaceholder || '(555) 123-4567'
-				break
-			case 'address':
-				defaultPlaceholder = defaultPlaceholder || 'Enter full address'
-				break
-			case 'file':
-				defaultPlaceholder = defaultPlaceholder || 'Upload file (PDF, DOC, JPG, etc.)'
-				break
-			case 'signature':
-				defaultPlaceholder = defaultPlaceholder || 'Type your full name to sign'
-				break
-		}
-
+		// Create field object
 		const newField: FormField = {
 			id: generateId(),
 			label: fieldLabel.trim(),
 			type: fieldType,
 			required: fieldRequired,
-			placeholder: defaultPlaceholder,
-			options: fieldOptions.trim() ? fieldOptions.split(',').map(opt => opt.trim()) : defaultOptions
+			placeholder: fieldPlaceholder.trim() || undefined,
+			options: fieldOptions.trim() ? fieldOptions.split(',').map(opt => opt.trim()) : FieldMCP.generateDefaultOptions(fieldType)
 		}
 
-		setFields(prev => [...prev, newField])
+		// Validate field using MCP
+		const validation = FieldMCP.validateField(newField)
+		if (!validation.success) {
+			const errorMessages = validation.errors?.map(e => e.message) || ['Invalid field configuration']
+			setError(errorMessages.join(', '))
+			MCPLogger.error('handleAddField', validation.errors?.[0] || new Error('Field validation failed'))
+			return
+		}
+
+		// Sanitize field data
+		const sanitizedField = FieldMCP.sanitizeFieldData(newField)
+
+		setFields(prev => [...prev, sanitizedField])
 		resetFieldForm()
 		setError('')
 	}
@@ -144,10 +133,22 @@ export default function CreateForm({ params }: CreateFormProps) {
 			type: fieldType,
 			required: fieldRequired,
 			placeholder: fieldPlaceholder.trim() || undefined,
-			options: fieldOptions.trim() ? fieldOptions.split(',').map(opt => opt.trim()) : undefined
+			options: fieldOptions.trim() ? fieldOptions.split(',').map(opt => opt.trim()) : FieldMCP.generateDefaultOptions(fieldType)
 		}
 
-		setFields(prev => prev.map(f => f.id === editingField.id ? updatedField : f))
+		// Validate field using MCP
+		const validation = FieldMCP.validateField(updatedField)
+		if (!validation.success) {
+			const errorMessages = validation.errors?.map(e => e.message) || ['Invalid field configuration']
+			setError(errorMessages.join(', '))
+			MCPLogger.error('handleUpdateField', validation.errors?.[0] || new Error('Field validation failed'))
+			return
+		}
+
+		// Sanitize field data
+		const sanitizedField = FieldMCP.sanitizeFieldData(updatedField)
+
+		setFields(prev => prev.map(f => f.id === editingField.id ? sanitizedField : f))
 		resetFieldForm()
 		setError('')
 	}

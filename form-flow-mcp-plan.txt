@@ -1,0 +1,123 @@
+
+# MCP Integration Plan for Form Flow (v1.1.0 Upgrade)
+Date: 2025-09-02
+
+## Overview
+This document provides a step-by-step plan for upgrading the Form Flow app to use the Model Context Protocol (MCP) pattern. It includes checkpoints for documentation updates, changelog edits, version bumps, local dev run reminders, and commits for major milestones.
+
+We will also eventually enhance the **component/input library** and **User Dashboard page**, but **those tasks will be completed *after* MCP refactoring is finished**, to ensure all logic layers are consistent and centralized.
+
+---
+
+## STEP 0: Pre-Check
+
+1. ✅ Ensure current version `1.0.0` is stable and pushed to main.
+2. ✅ Backup localStorage data (for test cases).
+
+---
+
+## STEP 1: Setup MCP Directory
+
+- Create `src/lib/mcp/`
+- Create the following initial files:
+  - `FormMCP.ts`
+  - `FieldMCP.ts`
+  - `SubmissionMCP.ts`
+  - `protocols.ts` (for interfaces)
+
+📌 Commit: `feat(mcp): scaffold initial MCP structure`
+
+---
+
+## STEP 2: Define Protocol Interfaces (`protocols.ts`)
+
+- `IFormProtocol`
+- `IFieldProtocol`
+- `ISubmissionProtocol`
+
+📌 Commit: `feat(protocols): define base MCP interfaces`
+
+---
+
+## STEP 3: Convert Form Logic → `FormMCP`
+
+- Move `addField`, `validate`, and `render` logic into `FormMCP`
+- Inject this logic into the form creation + rendering pages
+
+📌 Run: `npm run dev`  
+📝 Update: `CHANGELOG.md` with `Added: FormMCP logic with render/validation behavior`  
+📌 Commit: `refactor(form): use MCP-based FormMCP for creation and rendering`
+
+---
+
+## STEP 4: Convert Field Rendering → `FieldMCP`
+
+- Replace raw JSX mappings with `fieldMCP.render()` calls
+- Handle all 14 field types using conditional render logic
+
+📌 Run: `npm run dev`  
+📝 Update: `docs/mcp-field.md` — Document each field type behavior  
+📌 Commit: `refactor(fields): MCP-based rendering via FieldMCP`
+
+---
+
+## STEP 5: Hook Submission Flow into `SubmissionMCP`
+
+- Validate fields via `SubmissionMCP.validateAgainst(form)`
+- Use `getErrors()` to power client-side error messages
+
+📌 Run: `npm run dev`  
+📌 Commit: `refactor(submission): add SubmissionMCP for structured validation`
+
+---
+
+## STEP 6: Update Docs & Version
+
+- 📝 Update `/README.md` with a new **Architecture** section for MCP
+- 📝 Update `/CHANGELOG.md` for v1.1.0 summary
+- 📝 Create `/docs/mcp-overview.md`
+- 🔁 In `package.json`, update version to: `"1.1.0"`
+- 📌 Commit: `docs: update changelog, readme and MCP documentation`
+
+---
+
+## STEP 7: Push Milestone
+
+- 🧠 Verify app runs as expected with MCP abstraction
+- ✅ Test:
+  - Creating form
+  - Editing fields
+  - Viewing `/form/[formid]`
+  - Submitting successfully with error handling
+
+📌 Git Push: `git push origin main`  
+📌 Commit: `chore(release): v1.1.0 with MCP pattern`
+
+---
+
+## AFTER MCP INTEGRATION
+
+### 📦 Task 1: Enhance Component & Input Library
+
+- Create `components/input-library/`
+- Add reusable custom inputs using PrimeReact base (with animations/styling)
+
+📌 Commit: `feat(components): expand input library with reusable field types`
+
+---
+
+### 🧩 Task 2: Redesign User Dashboard Page
+
+- Better layout for listing forms
+- Add stats: total forms, submissions, recently updated
+- Add filters/search
+
+📌 Commit: `feat(dashboard): redesign dashboard with statistics and filters`
+
+---
+
+## Final Note
+
+All logic from FormContext should defer to MCP instances wherever possible.
+Do **not** mix logic layers. MCPs become the authoritative logic layer for rendering, validating, and transforming all form data.
+
