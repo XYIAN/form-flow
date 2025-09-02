@@ -35,9 +35,17 @@ export class FieldMCP {
 		const tracker = MCPLogger.createPerformanceTracker('render')
 
 		try {
+			console.log('🎨 FieldMCP: Starting field rendering...')
+			console.log('🏷️ Field ID:', props.field.id)
+			console.log('📝 Field label:', props.field.label)
+			console.log('🔧 Field type:', props.field.type)
+			console.log('✅ Required:', props.field.required)
+
 			// Validate field
+			console.log('🔍 Validating field configuration...')
 			const fieldValidation = FieldMCP.validateField(props.field)
 			if (!fieldValidation.success) {
+				console.error('❌ Field validation failed:', fieldValidation.errors)
 				const result: MCPResult<{ Component: any; componentProps: any }> = {
 					success: false,
 					errors: fieldValidation.errors,
@@ -51,6 +59,7 @@ export class FieldMCP {
 				MCPLogger.log('render', props.field, result)
 				return result
 			}
+			console.log('✅ Field validation passed')
 
 			// Get component and props
 			const Component = FieldMCP.getComponent(props.field.type)

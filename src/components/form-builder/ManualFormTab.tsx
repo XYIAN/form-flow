@@ -67,10 +67,20 @@ export default function ManualFormTab({
 	const handleAddField = () => {
 		if (!fieldLabel.trim()) return
 
+		console.log('➕ Manual Form: Adding new field...')
+		console.log('📝 Field label:', fieldLabel.trim())
+		console.log('🔧 Field type:', fieldType)
+		console.log('✅ Required:', fieldRequired)
+		console.log('📋 Placeholder:', fieldPlaceholder.trim() || 'None')
+
 		const options = fieldOptions
 			.split(',')
 			.map(opt => opt.trim())
 			.filter(opt => opt)
+
+		if (options.length > 0) {
+			console.log('📊 Field options:', options)
+		}
 
 		const newField = {
 			id: `field_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -81,6 +91,7 @@ export default function ManualFormTab({
 			options: options.length > 0 ? options : undefined,
 		}
 
+		console.log('✅ Field created successfully:', newField)
 		onAddField(newField)
 		resetFieldForm()
 	}

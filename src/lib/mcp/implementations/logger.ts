@@ -16,12 +16,28 @@ import {
 
 export class MCPLogger {
 	private static config: MCPConfig = DEFAULT_MCP_CONFIG
-	private static onLogCallback?: (level: string, operation: string, message: string, data?: any, executionTime?: number) => void
+	private static onLogCallback?: (
+		level: string,
+		operation: string,
+		message: string,
+		data?: any,
+		executionTime?: number
+	) => void
 
 	/**
 	 * Configure the logger
 	 */
-	static configure(config: Partial<MCPConfig> & { onLog?: (level: string, operation: string, message: string, data?: any, executionTime?: number) => void }): void {
+	static configure(
+		config: Partial<MCPConfig> & {
+			onLog?: (
+				level: string,
+				operation: string,
+				message: string,
+				data?: any,
+				executionTime?: number
+			) => void
+		}
+	): void {
 		this.config = { ...this.config, ...config }
 		if (config.onLog) {
 			this.onLogCallback = config.onLog
@@ -40,7 +56,7 @@ export class MCPLogger {
 		// Enhanced console logging with better formatting
 		const timestamp = new Date().toISOString()
 		const status = result.success ? '✅' : '❌'
-		
+
 		console.group(`🔧 MCP: ${operation} ${status}`)
 		console.log(`🕐 Timestamp: ${timestamp}`)
 		console.log(`📊 Status: ${result.success ? 'SUCCESS' : 'FAILED'}`)
@@ -64,7 +80,9 @@ export class MCPLogger {
 			result.metadata?.executionTime
 		) {
 			console.group('⏱️ Performance Metrics')
-			console.log(`Execution time: ${result.metadata.executionTime.toFixed(2)}ms`)
+			console.log(
+				`Execution time: ${result.metadata.executionTime.toFixed(2)}ms`
+			)
 			console.log(`Operation: ${result.metadata.operation}`)
 			console.log(`Timestamp: ${result.metadata.timestamp}`)
 			console.groupEnd()
@@ -79,7 +97,7 @@ export class MCPLogger {
 					message: error.message,
 					field: error.field,
 					timestamp: error.timestamp,
-					details: error.details
+					details: error.details,
 				})
 			})
 			console.groupEnd()
@@ -94,7 +112,7 @@ export class MCPLogger {
 					message: warning.message,
 					field: warning.field,
 					timestamp: warning.timestamp,
-					details: warning.details
+					details: warning.details,
 				})
 			})
 			console.groupEnd()
@@ -106,7 +124,10 @@ export class MCPLogger {
 			console.log('Operation:', result.metadata.operation)
 			console.log('Timestamp:', result.metadata.timestamp)
 			if (result.metadata.executionTime) {
-				console.log('Execution Time:', `${result.metadata.executionTime.toFixed(2)}ms`)
+				console.log(
+					'Execution Time:',
+					`${result.metadata.executionTime.toFixed(2)}ms`
+				)
 			}
 			console.groupEnd()
 		}
@@ -115,8 +136,16 @@ export class MCPLogger {
 
 		// Call external callback if configured
 		if (this.onLogCallback) {
-			const message = result.success ? 'Operation completed successfully' : 'Operation failed'
-			this.onLogCallback(level, operation, message, result, result.metadata?.executionTime)
+			const message = result.success
+				? 'Operation completed successfully'
+				: 'Operation failed'
+			this.onLogCallback(
+				level,
+				operation,
+				message,
+				result,
+				result.metadata?.executionTime
+			)
 		}
 	}
 

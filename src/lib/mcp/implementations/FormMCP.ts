@@ -18,9 +18,16 @@ export class FormMCP {
 		const tracker = MCPLogger.createPerformanceTracker('createForm')
 
 		try {
+			console.log('🚀 FormMCP: Starting form creation...')
+			console.log('👤 User ID:', userId)
+			console.log('📝 Form title:', data.title)
+			console.log('📊 Field count:', data.fields?.length || 0)
+
 			// Validate input data
+			console.log('🔍 Validating form data...')
 			const validation = FormMCP.validateFormData(data)
 			if (!validation.isValid) {
+				console.error('❌ Form validation failed:', validation.errors)
 				const result: MCPResult<Form> = {
 					success: false,
 					errors: validation.errors,
@@ -34,14 +41,19 @@ export class FormMCP {
 				MCPLogger.log('createForm', data, result)
 				return result
 			}
+			console.log('✅ Form validation passed')
 
 			// Sanitize input data
+			console.log('🧹 Sanitizing form data...')
 			const sanitizedData = FormMCP.sanitizeFormData(data)
 
 			// Generate form metadata
+			console.log('📋 Generating form metadata...')
 			const metadata = FormMCP.generateFormMetadata(userId)
+			console.log('🆔 Generated form ID:', metadata.id)
 
 			// Create form object
+			console.log('🏗️ Creating form object...')
 			const form: Form = {
 				id: metadata.id!,
 				userId: metadata.userId!,

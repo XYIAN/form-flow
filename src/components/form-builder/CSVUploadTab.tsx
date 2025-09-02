@@ -58,32 +58,52 @@ export default function CSVUploadTab({
 		const file = event.files[0]
 		if (!file) return
 
+		console.log('📁 CSV Upload: Starting file processing...')
+		console.log('📄 File name:', file.name)
+		console.log('📊 File size:', file.size, 'bytes')
+		console.log('📅 File type:', file.type)
+
 		setCsvProcessing(true)
 		onMcpStatusChange('running')
 		onMcpError('')
 
 		try {
+			console.log('📖 Reading file content...')
 			const content = await file.text()
+			console.log('✅ File content read successfully')
+			console.log('📄 Content length:', content.length, 'characters')
+			console.log('📄 Content preview:', content.substring(0, 200) + '...')
 
 			// Parse CSV using CSVParserMCP
+			console.log('🔍 Parsing CSV content...')
 			const parseResult = CSVParserMCP.parseCSV(content)
 			if (!parseResult.success || !parseResult.data) {
+				console.error('❌ CSV parsing failed:', parseResult.errors)
 				onError('Failed to parse CSV file')
 				onMcpStatusChange('error')
 				onMcpError('Failed to parse CSV file')
 				return
 			}
+			console.log('✅ CSV parsing successful')
+			console.log('📊 Headers found:', parseResult.data.headers)
+			console.log('📊 Rows found:', parseResult.data.rows.length)
 
 			const csvData = parseResult.data
 			setCsvHeaders(csvData.headers)
 
 			// Analyze CSV data
+			console.log('🔬 Analyzing CSV data...')
 			const analysisResult = CSVParserMCP.analyzeCSV(csvData)
 			if (analysisResult.success && analysisResult.data) {
+				console.log('✅ CSV analysis completed')
+				console.log('📊 Analysis results:', analysisResult.data)
 				setCsvAnalysis(analysisResult.data)
+			} else {
+				console.warn('⚠️ CSV analysis failed or returned no data')
 			}
 
 			// Generate form fields
+			console.log('🏗️ Generating form fields from CSV...')
 			const generationResult = FormGeneratorMCP.generateFormFromCSV(content, {
 				formTitle: csvTitle || 'Generated Form',
 				formDescription: csvDescription || 'Form generated from CSV data',
@@ -91,19 +111,30 @@ export default function CSVUploadTab({
 			})
 
 			if (generationResult.success && generationResult.data) {
+				console.log('✅ Form generation successful')
+				console.log('📊 Generated fields:', generationResult.data.fields.length)
+				console.log('📋 Field details:', generationResult.data.fields.map(f => ({
+					id: f.id,
+					label: f.label,
+					type: f.type,
+					required: f.required
+				})))
 				setGeneratedFields(generationResult.data.fields)
 				onMcpStatusChange('success')
 				onMcpExecutionTime(generationResult.metadata?.executionTime || 0)
 			} else {
+				console.error('❌ Form generation failed:', generationResult.errors)
 				onError('Failed to generate form from CSV')
 				onMcpStatusChange('error')
 				onMcpError('Failed to generate form from CSV')
 			}
-		} catch {
+		} catch (error) {
+			console.error('❌ CSV processing error:', error)
 			onError('Error processing CSV file')
 			onMcpStatusChange('error')
 			onMcpError('Error processing CSV file')
 		} finally {
+			console.log('🏁 CSV processing completed')
 			setCsvProcessing(false)
 		}
 	}
