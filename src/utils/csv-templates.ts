@@ -68,7 +68,7 @@ export const CSV_TEMPLATES: Record<string, CSVTemplate> = {
 			['USER002', '2.1.0', 'Feature Request', 'Medium', 'Functionality', 'Dark mode support', 'Would like to see a dark mode option', 'N/A', 'Dark mode toggle in settings', 'N/A', 'Firefox 121', 'macOS 14', '2024-01-16'],
 			['USER003', '2.0.9', 'Enhancement', 'Low', 'Performance', 'Slow page loading', 'The dashboard takes too long to load', '1. Login to account\n2. Navigate to dashboard', 'Dashboard should load within 2 seconds', 'Dashboard takes 10+ seconds to load', 'Safari 17', 'macOS 14', '2024-01-17']
 		],
-		fieldTypes: ['text', 'text', 'select', 'select', 'select', 'text', 'textarea', 'textarea', 'textarea', 'textarea', 'text', 'text', 'date'],
+		fieldTypes: ['text', 'text', 'select', 'select', 'select', 'text', 'textarea', 'textarea', 'textarea', 'textarea', 'text', 'text', 'date'] as FieldType[],
 		instructions: 'Comprehensive feedback collection template. Perfect for bug reports, feature requests, and user feedback.'
 	}
 }
